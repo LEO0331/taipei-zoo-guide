@@ -5,6 +5,7 @@ dist/
 *.log
 src/**/*.js
 src/**/*.d.ts
+!src/vite-env.d.ts
 scripts/**/*.js
 scripts/**/*.d.ts
 vite.config.js

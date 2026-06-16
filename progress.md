@@ -2,7 +2,7 @@
 
 ## Current State
 
-**Last Updated:** 2026-06-16 15:30 Asia/Taipei  
+**Last Updated:** 2026-06-16 15:54 Asia/Taipei  
 **Active Feature:** none
 
 ## Status
@@ -19,6 +19,7 @@
 - [x] Ran `./init.sh` successfully.
 - [x] Completed code review fixes for GitHub Pages runtime paths, PWA manifest paths, URL sanitization, storage fallback, stale raw-data page handling, and adoption marker parsing.
 - [x] Completed AI slop cleanup pass with regression tests first.
+- [x] Fixed clean-checkout Vite env typing by allowing `src/vite-env.d.ts` to be tracked.
 
 ### What's In Progress
 
@@ -47,6 +48,8 @@
   - Context: absolute root paths break when deployed under `/taipei-zoo-guide/`.
 - **Cleanup stayed behavior-preserving:** removed duplication and brittle checks instead of splitting the app into many files.
   - Context: the app is still small enough for single-file component locality; a broad component extraction would increase churn without new behavior.
+- **Vite env declaration is source, not generated output:** `src/vite-env.d.ts` must remain tracked even though other generated `.d.ts` files stay ignored.
+  - Context: clean CI checkouts need Vite's `ImportMetaEnv` augmentation for `import.meta.env.BASE_URL` and `import.meta.env.PROD`.
 
 ## Files Modified This Session
 
@@ -69,6 +72,8 @@
 - `src/main.tsx` - explicit root-element startup error.
 - `src/utils/zooData.ts` - cached normalized row fields instead of repeated lookups.
 - `src/utils/zooData.test.ts` - stronger live API row normalization coverage.
+- `.gitignore` - allow tracked Vite env source declaration.
+- `src/vite-env.d.ts` - Vite client type reference for `import.meta.env`.
 
 ## Evidence of Completion
 
@@ -81,6 +86,7 @@
 - [x] Generated URL safety: `badUrls=0`
 - [x] Pages path check: `dist/index.html` uses `/taipei-zoo-guide/`, manifest uses relative `icons/icon.svg`
 - [x] Cleanup full gate: `./init.sh` passed after cleanup
+- [x] Vite env type build fix: `npm run build` passed
 
 ## Notes for Next Session
 

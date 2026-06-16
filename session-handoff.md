@@ -18,6 +18,7 @@
 - [x] Ran `./init.sh` successfully.
 - [x] Completed code review fixes and reran verification.
 - [x] Completed AI slop cleanup and reran verification.
+- [x] Fixed clean-checkout Vite env typing and reran `npm run build`.
 
 ## Verification Evidence
 
@@ -32,6 +33,7 @@
 | Generated URL safety | Node JSON scan | Passed | 313 records, 313 valid coordinates, badUrls=0 |
 | Pages path check | `dist/index.html`, `dist/manifest.webmanifest` | Passed | HTML uses `/taipei-zoo-guide/`; manifest paths are relative |
 | Cleanup full gate | `./init.sh` | Passed | npm ci, convert, tests, local build, Pages build, audit |
+| Vite env type fix | `npm run build` | Passed | `src/vite-env.d.ts` is no longer ignored |
 
 ## Files Changed
 
@@ -45,6 +47,8 @@
 - `src/utils/assets.ts`
 - `src/utils/zooData.ts`
 - `src/utils/zooData.test.ts`
+- `.gitignore`
+- `src/vite-env.d.ts`
 - `scripts/fetchZooAnimalData.ts`
 - `scripts/convertZooAnimalData.ts`
 - `public/service-worker.js`
@@ -63,6 +67,7 @@
 - Sanitize generated links to `http:`/`https:` before writing frontend JSON.
 - Honor `resource-index.json` during conversion to avoid stale page files.
 - Keep cleanup passes smell-scoped; avoid broad component extraction until there is a concrete maintenance problem.
+- Keep `src/vite-env.d.ts` tracked; it is required source typing for Vite's `import.meta.env`.
 
 ## Blockers / Risks
 

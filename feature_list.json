@@ -55,6 +55,14 @@
       "dependencies": ["feat-001", "feat-002", "feat-006"],
       "status": "done",
       "evidence": "./init.sh passed after cleanup: npm ci, npm run convert:data, npm test, npm run build, GITHUB_PAGES=true npm run build, and npm audit --audit-level=moderate."
+    },
+    {
+      "id": "feat-008",
+      "name": "Vite env type build fix",
+      "description": "Keep the Vite client env declaration tracked so clean checkouts type import.meta.env correctly.",
+      "dependencies": ["feat-001", "feat-003"],
+      "status": "done",
+      "evidence": "src/vite-env.d.ts was ignored by src/**/*.d.ts. .gitignore now allows that source declaration, and npm run build passes."
     }
   ]
 }
