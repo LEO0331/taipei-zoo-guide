@@ -1,0 +1,15 @@
+{
+  "generatedAt": "2026-06-16T07:29:30.138Z",
+  "sourceRows": 313,
+  "generatedAnimals": 313,
+  "coordinateStatus": {
+    "valid": 313,
+    "missing": 0,
+    "outlier": 0
+  },
+  "media": {
+    "photoRecords": 312,
+    "audioRecords": 3,
+    "videoRecords": 69
+  }
+}

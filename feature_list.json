@@ -1,0 +1,60 @@
+{
+  "features": [
+    {
+      "id": "feat-001",
+      "name": "Core Vite React animal guide",
+      "description": "Mobile-first bilingual Taipei Zoo guide with map, searchable directory, detail panel, dashboard, data table, PWA shell, and static JSON runtime data.",
+      "dependencies": [],
+      "status": "done",
+      "evidence": "Implemented in src/, public/, scripts/, and README.md. Verified with npm test, npm run build, GITHUB_PAGES=true npm run build, npm audit --audit-level=moderate."
+    },
+    {
+      "id": "feat-002",
+      "name": "Taipei Open Data pipeline",
+      "description": "Fetch raw API pages into data/raw/zoo-animals and convert them into public/data static JSON with coordinate/media/report handling.",
+      "dependencies": ["feat-001"],
+      "status": "done",
+      "evidence": "npm run fetch:data fetched 313 records; npm run convert:data generated 313 records with 313 valid coordinates, 312 photo-link records, 3 audio-link records, and 70 video-link records."
+    },
+    {
+      "id": "feat-003",
+      "name": "GitHub Pages deployment",
+      "description": "Build and deploy dist/ through GitHub Actions with test, data refresh, conversion, and Pages artifact upload.",
+      "dependencies": ["feat-001", "feat-002"],
+      "status": "done",
+      "evidence": ".github/workflows/deploy-pages.yml added. Vite base switches to /taipei-zoo-guide/ when GITHUB_PAGES=true. Verified with GITHUB_PAGES=true npm run build."
+    },
+    {
+      "id": "feat-004",
+      "name": "Agent harness",
+      "description": "Maintain AGENTS.md, feature_list.json, progress.md, init.sh, and session-handoff.md so future agents can restart, verify, and stay in scope.",
+      "dependencies": ["feat-001", "feat-002", "feat-003"],
+      "status": "done",
+      "evidence": "Harness validation scored 100/100. ./init.sh passed: npm ci, npm run convert:data, npm test, npm run build, GITHUB_PAGES=true npm run build, and npm audit --audit-level=moderate."
+    },
+    {
+      "id": "feat-005",
+      "name": "Visual browser QA",
+      "description": "Run a successful browser-based smoke test for desktop and mobile layouts after the in-app browser crash is resolved or an alternate approved browser path is available.",
+      "dependencies": ["feat-001"],
+      "status": "not-started",
+      "evidence": "Previous in-app browser attempt crashed on local Vite URL; HTTP checks for app shell and data returned 200 OK."
+    },
+    {
+      "id": "feat-006",
+      "name": "Code review fixes",
+      "description": "Fix review findings in deployment path handling, generated URL safety, storage robustness, data conversion freshness, and dataset marker parsing.",
+      "dependencies": ["feat-001", "feat-002", "feat-003"],
+      "status": "done",
+      "evidence": "./init.sh passed after fixes. Additional checks confirmed Pages manifest/icon paths are repository-safe, generated data has 313 records with 313 valid coordinates, and badUrls=0."
+    },
+    {
+      "id": "feat-007",
+      "name": "AI slop cleanup",
+      "description": "Reduce cleanup smells without changing behavior: brittle coordinate checks, repeated media counts, repeated row-field lookups, root non-null assertion, and weak API-row regression coverage.",
+      "dependencies": ["feat-001", "feat-002", "feat-006"],
+      "status": "done",
+      "evidence": "./init.sh passed after cleanup: npm ci, npm run convert:data, npm test, npm run build, GITHUB_PAGES=true npm run build, and npm audit --audit-level=moderate."
+    }
+  ]
+}

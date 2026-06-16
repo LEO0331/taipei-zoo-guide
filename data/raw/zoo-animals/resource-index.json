@@ -1,0 +1,13 @@
+{
+  "resourceId": "6afa114d-38a2-4e3c-9cfd-29d3bd26b65b",
+  "apiBase": "https://data.taipei/api/v1/dataset",
+  "fetchedAt": "2026-06-16T07:13:27.332Z",
+  "total": 313,
+  "pages": [
+    {
+      "file": "page-00000.json",
+      "count": 313,
+      "offset": 0
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "台北動物園動物導覽",
+  "short_name": "動物園導覽",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "theme_color": "#166534",
+  "background_color": "#ffffff",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
