@@ -9,7 +9,11 @@
     "preview": "vite preview",
     "test": "vitest run --config vitest.config.ts src/**/*.test.ts",
     "fetch:data": "tsx scripts/fetchZooAnimalData.ts",
-    "convert:data": "tsx scripts/convertZooAnimalData.ts"
+    "data:fetch:exhibit-areas": "tsx scripts/fetchZooExhibitAreas.ts",
+    "data:fetch:events": "tsx scripts/fetchZooEvents.ts",
+    "convert:data": "tsx scripts/convertZooAnimalData.ts && tsx scripts/convertZooExhibitAreas.ts && tsx scripts/convertZooEvents.ts && tsx scripts/buildZooGuideSummary.ts",
+    "data:convert:exhibit-areas": "tsx scripts/convertZooExhibitAreas.ts",
+    "data:convert:events": "tsx scripts/convertZooEvents.ts"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",

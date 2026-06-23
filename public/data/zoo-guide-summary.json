@@ -1,0 +1,225 @@
+{
+  "animalCount": 313,
+  "exhibitAreaCount": 17,
+  "exhibitAreaCategoryCount": 3,
+  "eventCount": 116,
+  "upcomingEventCount": 0,
+  "ongoingEventCount": 2,
+  "pastEventCount": 93,
+  "pausedOrCancelledEventCount": 21,
+  "eventDateMin": "2025-12-01",
+  "eventDateMax": "2026-11-30",
+  "byExhibitAreaCategory": [
+    {
+      "areaCategory": "outdoor",
+      "areaCategoryRaw": "戶外區",
+      "count": 8
+    },
+    {
+      "areaCategory": "indoor",
+      "areaCategoryRaw": "室內區",
+      "count": 6
+    },
+    {
+      "areaCategory": "education",
+      "areaCategoryRaw": "教育館區",
+      "count": 3
+    }
+  ],
+  "byEventCategory": [
+    {
+      "eventCategory": "scheduled_course",
+      "eventCategoryRaw": "定時定點課程",
+      "count": 64
+    },
+    {
+      "eventCategory": "paused_or_cancelled",
+      "eventCategoryRaw": "保母講古暫停",
+      "count": 21
+    },
+    {
+      "eventCategory": "keeper_talk",
+      "eventCategoryRaw": "保母講古",
+      "count": 20
+    },
+    {
+      "eventCategory": "education_station",
+      "eventCategoryRaw": "教育駐站",
+      "count": 10
+    },
+    {
+      "eventCategory": "special_exhibition",
+      "eventCategoryRaw": "特展",
+      "count": 1
+    }
+  ],
+  "byEventStatus": [
+    {
+      "eventStatus": "past",
+      "count": 93
+    },
+    {
+      "eventStatus": "cancelled_or_paused",
+      "count": 21
+    },
+    {
+      "eventStatus": "ongoing",
+      "count": 2
+    }
+  ],
+  "byEventMonth": [
+    {
+      "month": "2026-06",
+      "count": 79
+    },
+    {
+      "month": "2026-05",
+      "count": 36
+    },
+    {
+      "month": "2025-12",
+      "count": 1
+    }
+  ],
+  "byEventLocation": [
+    {
+      "locationName": "兩棲爬蟲教室",
+      "count": 24
+    },
+    {
+      "locationName": "昆蟲館入口",
+      "count": 24
+    },
+    {
+      "locationName": "動物行為學院",
+      "count": 12
+    },
+    {
+      "locationName": "臺灣動物區歐亞水獺",
+      "count": 12
+    },
+    {
+      "locationName": "企鵝館",
+      "count": 6
+    },
+    {
+      "locationName": "非洲象展場有玻璃的那側",
+      "count": 6
+    },
+    {
+      "locationName": "教育中心大門口迴廊",
+      "count": 6
+    },
+    {
+      "locationName": "教育中心大廳",
+      "count": 6
+    },
+    {
+      "locationName": "教育中心動物藝坊",
+      "count": 6
+    },
+    {
+      "locationName": "無尾熊館",
+      "count": 6
+    },
+    {
+      "locationName": "綠手指教室",
+      "count": 6
+    },
+    {
+      "locationName": "大貓熊館",
+      "count": 1
+    },
+    {
+      "locationName": "非洲動物區查普曼斑馬",
+      "count": 1
+    }
+  ],
+  "exhibitAreasWithAnimalCount": [
+    {
+      "exhibitAreaId": "exhibit-area-8",
+      "areaName": "鳥園區",
+      "animalCount": 57
+    },
+    {
+      "exhibitAreaId": "exhibit-area-12",
+      "areaName": "兩棲爬蟲動物館",
+      "animalCount": 45
+    },
+    {
+      "exhibitAreaId": "exhibit-area-15",
+      "areaName": "熱帶雨林室內館（穿山甲館）",
+      "animalCount": 26
+    },
+    {
+      "exhibitAreaId": "exhibit-area-6",
+      "areaName": "非洲動物區",
+      "animalCount": 20
+    },
+    {
+      "exhibitAreaId": "exhibit-area-3",
+      "areaName": "熱帶雨林區",
+      "animalCount": 19
+    },
+    {
+      "exhibitAreaId": "exhibit-area-1",
+      "areaName": "臺灣動物區",
+      "animalCount": 15
+    },
+    {
+      "exhibitAreaId": "exhibit-area-7",
+      "areaName": "溫帶動物區",
+      "animalCount": 10
+    },
+    {
+      "exhibitAreaId": "exhibit-area-2",
+      "areaName": "兒童動物區",
+      "animalCount": 9
+    },
+    {
+      "exhibitAreaId": "exhibit-area-4",
+      "areaName": "沙漠動物區",
+      "animalCount": 3
+    },
+    {
+      "exhibitAreaId": "exhibit-area-5",
+      "areaName": "澳洲動物區",
+      "animalCount": 3
+    },
+    {
+      "exhibitAreaId": "exhibit-area-10",
+      "areaName": "企鵝館",
+      "animalCount": 2
+    },
+    {
+      "exhibitAreaId": "exhibit-area-11",
+      "areaName": "無尾熊館",
+      "animalCount": 1
+    },
+    {
+      "exhibitAreaId": "exhibit-area-14",
+      "areaName": "新光特展館（大貓熊館）",
+      "animalCount": 1
+    },
+    {
+      "exhibitAreaId": "exhibit-area-13",
+      "areaName": "昆蟲館",
+      "animalCount": 0
+    },
+    {
+      "exhibitAreaId": "exhibit-area-9",
+      "areaName": "教育中心",
+      "animalCount": 0
+    },
+    {
+      "exhibitAreaId": "exhibit-area-16",
+      "areaName": "酷Cool節能屋",
+      "animalCount": 0
+    },
+    {
+      "exhibitAreaId": "exhibit-area-17",
+      "areaName": "頭廷魁文史館",
+      "animalCount": 0
+    }
+  ]
+}

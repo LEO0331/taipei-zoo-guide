@@ -63,6 +63,14 @@
       "dependencies": ["feat-001", "feat-003"],
       "status": "done",
       "evidence": "src/vite-env.d.ts was ignored by src/**/*.d.ts. .gitignore now allows that source declaration, and npm run build passes."
+    },
+    {
+      "id": "feat-009",
+      "name": "Exhibit-area and event visitor guide",
+      "description": "Add Taipei Zoo exhibit-area and event-calendar datasets, static conversion, relationships, navigation, filters, map layers, overview metrics, and licensing notes.",
+      "dependencies": ["feat-001", "feat-002", "feat-003"],
+      "status": "done",
+      "evidence": "Converted 17 exhibit areas and 116 events. All coordinates valid; 13 areas linked to animals, 68 events linked to areas, and 38 events linked to animals. npm test, local build, Pages build, desktop/mobile browser QA, and ./init.sh passed."
     }
   ]
 }

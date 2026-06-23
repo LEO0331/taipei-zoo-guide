@@ -2,85 +2,44 @@
 
 ## Current Objective
 
-- Goal: maintain a small, reliable agent harness for the Taipei Zoo Animal Guide.
-- Current status: harness created, customized, validated, and verified.
-- Branch / commit: `main`; current working tree has uncommitted project files.
+- Feature `feat-009` is complete.
+- The app is now a bilingual Taipei Zoo visitor guide for animals, exhibit areas, events, map locations, overview metrics, and data notes.
 
-## Completed This Session
+## Data Pipeline
 
-- [x] Added `AGENTS.md`
-- [x] Added `feature_list.json`
-- [x] Added `progress.md`
-- [x] Added `session-handoff.md`
-- [x] Added `init.sh`
-- [x] Customized generated harness content to this Vite/React/Leaflet app.
-- [x] Ran harness validation successfully.
-- [x] Ran `./init.sh` successfully.
-- [x] Completed code review fixes and reran verification.
-- [x] Completed AI slop cleanup and reran verification.
-- [x] Fixed clean-checkout Vite env typing and reran `npm run build`.
+- `npm run convert:data` converts animals, exhibit areas, events, then builds the combined summary.
+- Exhibit input: `data/raw/zoo-exhibit-areas/館區介紹1227_0325c改格式.csv`
+- Event input: `data/raw/zoo-events/行事曆 1150520.csv`
+- Fetch wrappers accept `LOCAL_CSV` or `RESOURCE_URL`; existing files are reused unless `--force` is passed.
+- Frontend runtime reads only `public/data/*.json`.
 
 ## Verification Evidence
 
-| Check | Command | Result | Notes |
-|---|---|---|---|
-| Unit tests | `npm test` | Passed | 4 utility tests |
-| Local production build | `npm run build` | Passed | Vite build succeeded |
-| GitHub Pages build | `GITHUB_PAGES=true npm run build` | Passed | Verifies repo base path |
-| Dependency audit | `npm audit --audit-level=moderate` | Passed | 0 vulnerabilities after Vite/Vitest upgrade |
-| Harness validation | `node /Users/Leo/.agents/skills/harness-creator/scripts/validate-harness.mjs --target /Users/Leo/Documents/taipei-zoo-guide` | Passed | 100/100 |
-| Full init | `./init.sh` | Passed | npm ci, convert, test, local build, Pages build, audit |
-| Generated URL safety | Node JSON scan | Passed | 313 records, 313 valid coordinates, badUrls=0 |
-| Pages path check | `dist/index.html`, `dist/manifest.webmanifest` | Passed | HTML uses `/taipei-zoo-guide/`; manifest paths are relative |
-| Cleanup full gate | `./init.sh` | Passed | npm ci, convert, tests, local build, Pages build, audit |
-| Vite env type fix | `npm run build` | Passed | `src/vite-env.d.ts` is no longer ignored |
+| Check | Result |
+|---|---|
+| Unit tests | 14 passed |
+| Conversion | 313 animals, 17 areas, 116 events |
+| Coordinates | 17/17 areas valid; 116/116 events valid |
+| Relationships | 13 linked areas; 68 event-area links; 38 event-animal links |
+| Local build | Passed |
+| GitHub Pages build | Passed |
+| Desktop browser QA | Passed |
+| Mobile 390x844 QA | Passed |
+| English toggle | Passed |
 
-## Files Changed
+## Decisions
 
-- `AGENTS.md`
-- `feature_list.json`
-- `progress.md`
-- `session-handoff.md`
-- `init.sh`
-- `src/App.tsx`
-- `src/main.tsx`
-- `src/utils/assets.ts`
-- `src/utils/zooData.ts`
-- `src/utils/zooData.test.ts`
-- `.gitignore`
-- `src/vite-env.d.ts`
-- `scripts/fetchZooAnimalData.ts`
-- `scripts/convertZooAnimalData.ts`
-- `public/service-worker.js`
-- `public/manifest.webmanifest`
-- `index.html`
-- `src/App.tsx`
-- `src/main.tsx`
-- `src/utils/zooData.ts`
-- `src/utils/zooData.test.ts`
+- No new dependency was added.
+- Event markers are clustered by identical coordinates using existing Leaflet primitives.
+- Dataset image URLs are retained only as references; the UI does not embed them.
+- Event status is recomputed in the browser using the Asia/Taipei date so static JSON does not become stale between conversions.
+- Relationship matching returns unique IDs and does not force ambiguous matches.
 
-## Decisions Made
+## Remaining Risk
 
-- Keep root instructions short and project-specific.
-- Use checked-in raw data for default startup verification; live fetch is explicit.
-- Track visual browser QA as a separate unfinished feature because the previous in-app browser attempt crashed.
-- Sanitize generated links to `http:`/`https:` before writing frontend JSON.
-- Honor `resource-index.json` during conversion to avoid stale page files.
-- Keep cleanup passes smell-scoped; avoid broad component extraction until there is a concrete maintenance problem.
-- Keep `src/vite-env.d.ts` tracked; it is required source typing for Vite's `import.meta.env`.
+- OpenStreetMap tiles could not load in the sandbox browser, but local marker layers rendered.
+- Official exhibit/event CSV resource URLs should be supplied through `RESOURCE_URL` when a live refresh is required.
 
-## Blockers / Risks
+## Restart
 
-- Browser visual QA has not passed inside the Codex in-app browser.
-- `npm run fetch:data` depends on external API/network availability.
-
-## Next Session Startup
-
-1. Read `AGENTS.md`.
-2. Read `feature_list.json`, `progress.md`, and this handoff.
-3. Run `./init.sh`.
-4. Pick exactly one unfinished feature from `feature_list.json`.
-
-## Recommended Next Step
-
-- Pick `feat-005` for visual browser QA, or add a new feature entry before starting new implementation work.
+Run `./init.sh`. Use the checked-in CSV files for deterministic builds; use live fetch commands only when source freshness is required.

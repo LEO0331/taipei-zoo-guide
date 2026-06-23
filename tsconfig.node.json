@@ -13,5 +13,5 @@
     "noEmit": true,
     "types": ["node", "vitest/globals"]
   },
-  "include": ["vite.config.ts", "vitest.config.ts", "scripts", "src/**/*.test.ts", "src/models.ts", "src/utils/zooData.ts"]
+  "include": ["vite.config.ts", "vitest.config.ts", "scripts", "src/**/*.test.ts", "src/models.ts", "src/utils/zooData.ts", "src/utils/zooGuideData.ts"]
 }

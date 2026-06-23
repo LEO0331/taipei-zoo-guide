@@ -1,40 +1,52 @@
 # Taipei Zoo Animal Guide / 台北動物園動物導覽
 
-Mobile-first bilingual web app for exploring the Taipei Open Data dataset `臺北市立動物園_動物資料`.
+Mobile-first bilingual visitor guide built with Vite, React, TypeScript, and Leaflet.
 
-The app provides a public animal map, searchable animal directory, detail guide, lightweight conservation dashboard, and data table. Traditional Chinese is the default UI language, with an English toggle persisted in `localStorage`.
+Now includes exhibit-area guide and event calendar / 新增館區導覽與行事曆.
 
-## Data Source
+The app keeps animal, exhibit-area, and event records as separate data types and links them conservatively through area names, aliases, locations, and direct animal-name matches. Traditional Chinese is the default language; the English toggle persists in `localStorage`.
 
-- Dataset page: https://data.taipei/dataset/detail?id=5cb73231-b741-48b3-bec3-2ef57bb10029
-- API resource URL: https://data.taipei/api/v1/dataset/6afa114d-38a2-4e3c-9cfd-29d3bd26b65b?scope=resourceAquire
-- Local raw data path: `data/raw/zoo-animals/`
-- Frontend static data path: `public/data/`
+## Data Sources
 
-The frontend never calls the Taipei Open Data API directly. It reads generated static JSON files only.
+- Animal dataset: https://data.taipei/dataset/detail?id=5cb73231-b741-48b3-bec3-2ef57bb10029
+- Exhibit-area dataset: https://data.taipei/dataset/detail?id=1ed45a8a-d26a-4a5f-b544-788a4071eea2
+- Event-calendar dataset: https://data.taipei/dataset/detail?id=61ff4b3a-8a8a-47e4-96ec-e180b2abbfdb
+- Animal raw data: `data/raw/zoo-animals/`
+- Exhibit-area raw data: `data/raw/zoo-exhibit-areas/`
+- Event raw data: `data/raw/zoo-events/`
+- Frontend static data: `public/data/`
 
-## Multimedia Licensing Caveat
+The browser never calls Taipei Open Data directly. It reads generated local JSON only.
 
-The dataset page states that open-license application content is limited to text. Images, sound, and video are outside the open-license scope.
+## Visitor Guide Modules
 
-This project does not download, re-host, or redistribute multimedia files. Multimedia fields are converted into structured external links so users can open original source-linked media separately.
+- Animal Guide / 動物導覽
+- Exhibit Areas / 館區導覽
+- Events / 行事曆
+- Map / 地圖
+- Data Overview / 資料概覽
+- Data Notes / 資料說明
 
-## Coordinate Handling
+The map has separate animal, exhibit-area, and event layers. Paused or cancelled events remain visible when their filter is enabled and are labelled distinctly.
 
-Coordinates are converted to numbers and validated against a broad Taipei Zoo / Wenshan area bounding box:
+## Coordinates and Dates
 
-```ts
-{
-  minLng: 121.55,
-  maxLng: 121.60,
-  minLat: 24.98,
-  maxLat: 25.01
-}
+Animal and exhibit-area coordinates are validated against Taipei Zoo bounds. Event coordinates support WKT values in either form:
+
+```txt
+POINT(121.5827058 24.9983016)
+MULTIPOINT((121.5827058,24.9983016))
 ```
 
-Records receive `coordinateStatus: "valid" | "missing" | "outlier"`. Missing or outlier coordinates are kept in the directory, dashboard, and data table, but are not rendered as map markers.
+Missing, outlier, or unparsed coordinates remain in list views and are omitted from map markers.
 
-Map points represent exhibit or guide locations, not real-time animal positions. Actual animal availability should be verified on site.
+Event dates are normalized to ISO `YYYY-MM-DD`. Event status uses the Asia/Taipei calendar date and returns upcoming, ongoing, past, paused/cancelled, or unknown.
+
+## Multimedia Licensing
+
+Taipei Zoo dataset open-license application content is limited mainly to text. Images, audio, and video are outside the open-license scope.
+
+This project does not download, re-host, transform, cache, embed, or redistribute dataset multimedia. Multimedia URLs remain external source references; the UI prefers official page links.
 
 ## Install
 
@@ -44,23 +56,23 @@ npm install
 
 ## Fetch Data
 
+Refresh the animal API pages:
+
 ```bash
 npm run fetch:data
 ```
 
-The fetch script supports Taipei Open Data resource URLs shaped like:
-
-```txt
-https://data.taipei/api/v1/dataset/{RESOURCE_ID}?scope=resourceAquire
-```
-
-It fetches the default resource `6afa114d-38a2-4e3c-9cfd-29d3bd26b65b`, supports `limit` and `offset`, writes pages into `data/raw/zoo-animals/`, and writes `resource-index.json` metadata.
-
-Optional environment variables:
+Prepare exhibit-area or event CSV input from a local file or an official CSV resource URL:
 
 ```bash
-RESOURCE_ID=6afa114d-38a2-4e3c-9cfd-29d3bd26b65b PAGE_LIMIT=1000 npm run fetch:data
+LOCAL_CSV="/path/to/areas.csv" npm run data:fetch:exhibit-areas
+RESOURCE_URL="https://example.gov.tw/areas.csv" npm run data:fetch:exhibit-areas -- --force
+
+LOCAL_CSV="/path/to/events.csv" npm run data:fetch:events
+RESOURCE_URL="https://example.gov.tw/events.csv" npm run data:fetch:events -- --force
 ```
+
+Existing CSV files are reused unless `--force` is passed. Source metadata records the dataset page, source, time, file size, encoding, and conversion note.
 
 ## Convert Data
 
@@ -68,44 +80,28 @@ RESOURCE_ID=6afa114d-38a2-4e3c-9cfd-29d3bd26b65b PAGE_LIMIT=1000 npm run fetch:d
 npm run convert:data
 ```
 
+CSV decoding supports UTF-8-SIG, UTF-8, and Big5/CP950 fallback.
+
 Generated files:
 
 - `public/data/zoo-animals.json`
 - `public/data/zoo-animal-summary.json`
+- `public/data/zoo-exhibit-areas.json`
+- `public/data/zoo-events.json`
+- `public/data/zoo-guide-summary.json`
 - `public/data/conversion-report.json`
 
-The converter supports raw Taipei Open Data JSON pages and CSV files placed under `data/raw/zoo-animals/`.
-
-## Develop
+## Develop and Verify
 
 ```bash
 npm run dev
-```
-
-## Test
-
-```bash
 npm test
-```
-
-## Build
-
-```bash
 npm run build
+GITHUB_PAGES=true npm run build
 ```
 
-## Deploy
-
-Build the static site and deploy the generated `dist/` directory to any static host.
-
-```bash
-npm run fetch:data
-npm run convert:data
-npm run build
-```
-
-The app includes a web app manifest, mobile viewport metadata, an SVG icon placeholder, and a simple service worker that caches the app shell and generated data JSON in production.
+The service worker caches the same-origin app shell and generated JSON files. It does not cache external dataset media.
 
 ## Disclaimer
 
-This site presents public animal guide data for educational exploration. Actual exhibit availability, animal status, open areas, and official notices should be verified through Taipei Zoo and Taipei Open Data.
+This site organizes Taipei Zoo public-data records for visitor guidance and data exploration only. Animal display status, event times, exhibit-area opening status, and on-site arrangements may change; refer to Taipei Zoo official notices and on-site information.
