@@ -7,6 +7,9 @@ import type {
   ZooEventStatus,
   ZooExhibitArea,
   ZooGuideSummary,
+  ZooMediaReference,
+  ZooPlantRecord,
+  ZooPlantSummary,
 } from '../models';
 import { parseCoordinate, parseKeywords } from './zooData';
 
@@ -19,6 +22,7 @@ export const TAIPEI_ZOO_GUIDE_BOUNDS = {
 
 const EXHIBIT_SOURCE = '臺北市立動物園_館區簡介';
 const EVENT_SOURCE = '臺北市立動物園_行事曆';
+const PLANT_SOURCE = '臺北市立動物園_植物資料';
 
 const EXHIBIT_AREA_CATEGORY_MAP: Record<string, ExhibitAreaCategory> = {
   戶外區: 'outdoor',
@@ -32,6 +36,14 @@ export const EXHIBIT_AREA_ALIASES: Record<string, string[]> = {
   '熱帶雨林室內館（穿山甲館）': ['穿山甲館', '熱帶雨林室內館'],
   兩棲爬蟲動物館: ['兩棲爬蟲館', '兩棲爬蟲動物館'],
   兒童動物區: ['兒童區', '兒童動物區'],
+};
+
+const ZOO_LOCATION_ALIASES: Record<string, string> = {
+  兩棲爬蟲館: '兩棲爬蟲動物館',
+  穿山甲館: '熱帶雨林室內館（穿山甲館）',
+  大貓熊館: '新光特展館（大貓熊館）',
+  '保育大道(主軸': '保育大道',
+  門內外廣場: '大門內外廣場',
 };
 
 function cleanValue(raw: unknown): string | undefined {
@@ -67,6 +79,18 @@ function coordinateStatus(longitude?: number, latitude?: number): CoordinateStat
     return 'outlier';
   }
   return 'valid';
+}
+
+function parsePlantCoordinate(raw: unknown): { value?: number; unparsed: boolean } {
+  const text = cleanValue(raw);
+  if (!text) return { unparsed: false };
+  const value = Number(text);
+  return Number.isFinite(value) ? { value, unparsed: false } : { unparsed: true };
+}
+
+function plantCoordinateStatus(longitude: ReturnType<typeof parsePlantCoordinate>, latitude: ReturnType<typeof parsePlantCoordinate>) {
+  if (longitude.unparsed || latitude.unparsed) return 'unparsed';
+  return coordinateStatus(longitude.value, latitude.value);
 }
 
 export function decodeCsvBuffer(bytes: Uint8Array): { text: string; encoding: 'utf-8-sig' | 'utf-8' | 'big5' } {
@@ -128,6 +152,79 @@ export function parseZooDate(raw: string | undefined): string | undefined {
     return undefined;
   }
   return `${year.toString().padStart(4, '0')}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+}
+
+export const parseZooPlantDate = parseZooDate;
+
+export function splitTextList(raw: string | undefined): string[] {
+  return [...new Set((raw ?? '').split(/[、,，;；\n\r]+/g).map((item) => item.trim()).filter(Boolean))];
+}
+
+export function parseChineseLatinTaxonomy(raw: string | undefined): {
+  raw?: string;
+  chinese?: string;
+  latin?: string;
+} {
+  const value = cleanValue(raw);
+  if (!value) return {};
+  const match = value.match(/^(.+?)\s*([A-Za-z][A-Za-z\s.-]*)$/);
+  return match
+    ? { raw: value, chinese: match[1].trim(), latin: match[2].trim() }
+    : { raw: value, chinese: value };
+}
+
+export function parsePlantLocationAreas(raw: string | undefined): string[] {
+  return splitTextList(raw).map((location) => ZOO_LOCATION_ALIASES[location] ?? location);
+}
+
+function normalizeText(value: string): string {
+  return value.toLocaleLowerCase().replace(/[\s（）()_\-|.]/g, '');
+}
+
+function normalizeNumber(value?: number): string {
+  return value === undefined ? 'missing' : value.toFixed(6).replace(/0+$/, '').replace(/\.$/, '');
+}
+
+export function getPlantSpeciesKey(record: Pick<ZooPlantRecord, 'scientificName' | 'chineseName' | 'familyRaw'>): string {
+  if (record.scientificName) return `latin:${normalizeText(record.scientificName)}`;
+  return `zh:${normalizeText(record.chineseName)}|family:${normalizeText(record.familyRaw ?? '')}`;
+}
+
+function getPlantRecordId(rowIndex: number, record: Partial<ZooPlantRecord>): string {
+  return [
+    'plant',
+    normalizeText(record.scientificName || record.chineseName || 'unknown'),
+    normalizeNumber(record.longitude),
+    normalizeNumber(record.latitude),
+    rowIndex,
+  ].join('|');
+}
+
+function mediaReference(kind: ZooMediaReference['kind'], alt: unknown, url: unknown): ZooMediaReference | undefined {
+  const safeUrl = cleanUrl(url);
+  const safeAlt = cleanValue(alt);
+  if (!safeUrl && !safeAlt) return undefined;
+  return {
+    kind,
+    ...(safeAlt ? { alt: safeAlt } : {}),
+    ...(safeUrl ? { url: safeUrl } : {}),
+    licenseScope: 'source_reference_only',
+  };
+}
+
+function plantMediaReferences(row: Record<string, unknown>): ZooMediaReference[] {
+  return [
+    mediaReference('image', row.F_Pic01_ALT, row.F_Pic01_URL),
+    mediaReference('image', row.F_Pic02_ALT, row.F_Pic02_URL),
+    mediaReference('image', row.F_Pic03_ALT, row.F_Pic03_URL),
+    mediaReference('image', row.F_Pic04_ALT, row.F_Pic04_URL),
+    mediaReference('pdf', row.F_pdf01_ALT, row.F_pdf01_URL),
+    mediaReference('pdf', row.F_pdf02_ALT, row.F_pdf02_URL),
+    mediaReference('audio', row.F_Voice01_ALT, row.F_Voice01_URL),
+    mediaReference('audio', row.F_Voice02_ALT, row.F_Voice02_URL),
+    mediaReference('audio', row.F_Voice03_ALT, row.F_Voice03_URL),
+    mediaReference('video', undefined, row.F_Vedio_URL),
+  ].filter((item): item is ZooMediaReference => Boolean(item));
 }
 
 export function parseZooWktCoordinate(raw: string | undefined): {
@@ -260,12 +357,69 @@ export function normalizeZooEventRow(row: Record<string, unknown>, index: number
   return event;
 }
 
+export function normalizePlantRow(row: Record<string, unknown>, index: number): ZooPlantRecord {
+  const longitude = parsePlantCoordinate(row.F_Longitude);
+  const latitude = parsePlantCoordinate(row.F_Latitude);
+  const family = parseChineseLatinTaxonomy(cleanValue(row.F_Family));
+  const genus = parseChineseLatinTaxonomy(cleanValue(row.F_Genus));
+  const keywordsRaw = cleanValue(row.F_Keywords);
+  const alsoKnownRaw = cleanValue(row.F_AlsoKnown);
+  const locationRaw = cleanValue(row.F_Location);
+  const updatedDateRaw = cleanValue(row.F_Update);
+  const partial: Partial<ZooPlantRecord> = {
+    chineseName: cleanValue(row.F_Name_Ch),
+    scientificName: cleanValue(row.F_Name_Latin),
+    longitude: longitude.value,
+    latitude: latitude.value,
+  };
+  const record: ZooPlantRecord = {
+    id: getPlantRecordId(index, partial),
+    module: 'plants',
+    chineseName: cleanValue(row.F_Name_Ch) ?? `未命名植物 ${index + 1}`,
+    ...(cleanValue(row.F_Name_En) ? { englishName: cleanValue(row.F_Name_En) } : {}),
+    ...(cleanValue(row.F_Name_Latin) ? { scientificName: cleanValue(row.F_Name_Latin) } : {}),
+    ...(cleanValue(row.F_Summary) ? { summary: cleanValue(row.F_Summary) } : {}),
+    ...(keywordsRaw ? { keywordsRaw } : {}),
+    keywords: splitTextList(keywordsRaw),
+    ...(alsoKnownRaw ? { alsoKnownRaw } : {}),
+    alsoKnown: splitTextList(alsoKnownRaw),
+    ...(longitude.value !== undefined ? { longitude: longitude.value } : {}),
+    ...(latitude.value !== undefined ? { latitude: latitude.value } : {}),
+    coordinateStatus: plantCoordinateStatus(longitude, latitude),
+    ...(locationRaw ? { locationRaw } : {}),
+    locationAreas: parsePlantLocationAreas(locationRaw),
+    ...(family.raw ? { familyRaw: family.raw } : {}),
+    ...(family.chinese ? { familyChinese: family.chinese } : {}),
+    ...(family.latin ? { familyLatin: family.latin } : {}),
+    ...(genus.raw ? { genusRaw: genus.raw } : {}),
+    ...(genus.chinese ? { genusChinese: genus.chinese } : {}),
+    ...(genus.latin ? { genusLatin: genus.latin } : {}),
+    ...(cleanValue(row.F_Brief) ? { brief: cleanValue(row.F_Brief) } : {}),
+    ...(cleanValue(row.F_Feature) ? { features: cleanValue(row.F_Feature) } : {}),
+    ...(cleanValue(row['F_Function&Application']) ? { functionAndApplication: cleanValue(row['F_Function&Application']) } : {}),
+    ...(cleanValue(row.F_Code) ? { plantCode: cleanValue(row.F_Code) } : {}),
+    ...(cleanValue(row.F_CID) ? { sourceContentId: cleanValue(row.F_CID) } : {}),
+    ...(updatedDateRaw ? { updatedDateRaw } : {}),
+    ...(parseZooPlantDate(updatedDateRaw) ? { updatedDate: parseZooPlantDate(updatedDateRaw) } : {}),
+    mediaReferences: plantMediaReferences(row),
+    source: PLANT_SOURCE,
+  };
+  return { ...record, id: getPlantRecordId(index, record) };
+}
+
 function normalizeMatchText(value: string): string {
   return value.toLocaleLowerCase().replace(/[\s（）()_\-]/g, '');
 }
 
 function areaNames(area: ZooExhibitArea): string[] {
   return [area.areaName, ...(EXHIBIT_AREA_ALIASES[area.areaName] ?? [])];
+}
+
+export function matchPlantToExhibitAreas(plant: ZooPlantRecord, areas: ZooExhibitArea[]): string[] {
+  const locations = plant.locationAreas.map(normalizeMatchText);
+  return areas
+    .filter((area) => areaNames(area).some((name) => locations.includes(normalizeMatchText(name))))
+    .map((area) => area.id);
 }
 
 export function matchAnimalsToExhibitArea(area: ZooExhibitArea, animals: ZooAnimal[]): string[] {
@@ -327,14 +481,102 @@ function countBy<T extends string>(values: T[]): Array<[T, number]> {
   return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'zh-Hant'));
 }
 
+function uniquePlantCount(records: ZooPlantRecord[]) {
+  return new Set(records.map(getPlantSpeciesKey)).size;
+}
+
+function plantRowsBy<T extends string>(
+  plants: ZooPlantRecord[],
+  values: (plant: ZooPlantRecord) => T[],
+): Array<[T, ZooPlantRecord[]]> {
+  const groups = new Map<T, ZooPlantRecord[]>();
+  for (const plant of plants) {
+    for (const value of values(plant)) groups.set(value, [...(groups.get(value) ?? []), plant]);
+  }
+  return [...groups.entries()].sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0], 'zh-Hant'));
+}
+
+export function buildZooPlantSummary(plants: ZooPlantRecord[]): ZooPlantSummary {
+  const speciesGroups = plantRowsBy(plants, (plant) => [getPlantSpeciesKey(plant)]);
+  const species = speciesGroups.map(([speciesKey, records]) => {
+    const first = records[0];
+    const dates = records.map((record) => record.updatedDate).filter((date): date is string => Boolean(date)).sort();
+    return {
+      speciesKey,
+      chineseName: first.chineseName,
+      ...(first.englishName ? { englishName: first.englishName } : {}),
+      ...(first.scientificName ? { scientificName: first.scientificName } : {}),
+      recordCount: records.length,
+      coordinateCount: records.filter((record) => record.coordinateStatus === 'valid').length,
+      ...(first.familyRaw ? { familyRaw: first.familyRaw } : {}),
+      ...(first.familyChinese ? { familyChinese: first.familyChinese } : {}),
+      ...(first.familyLatin ? { familyLatin: first.familyLatin } : {}),
+      ...(first.genusRaw ? { genusRaw: first.genusRaw } : {}),
+      ...(first.genusChinese ? { genusChinese: first.genusChinese } : {}),
+      ...(first.genusLatin ? { genusLatin: first.genusLatin } : {}),
+      locationAreas: [...new Set(records.flatMap((record) => record.locationAreas))].sort((a, b) => a.localeCompare(b, 'zh-Hant')),
+      alsoKnown: [...new Set(records.flatMap((record) => record.alsoKnown))].sort((a, b) => a.localeCompare(b, 'zh-Hant')),
+      ...(dates.at(-1) ? { latestUpdatedDate: dates.at(-1) } : {}),
+    };
+  });
+  const byFamily = plantRowsBy(plants, (plant) => (plant.familyRaw ? [plant.familyRaw] : []));
+  const byGenus = plantRowsBy(plants, (plant) => (plant.genusRaw ? [plant.genusRaw] : []));
+  const byLocationArea = plantRowsBy(plants, (plant) => plant.locationAreas);
+  return {
+    totalPlantRecords: plants.length,
+    uniqueChineseNameCount: new Set(plants.map((plant) => plant.chineseName).filter(Boolean)).size,
+    uniqueScientificNameCount: new Set(plants.map((plant) => plant.scientificName).filter(Boolean)).size,
+    validCoordinateCount: plants.filter((plant) => plant.coordinateStatus === 'valid').length,
+    outlierCoordinateCount: plants.filter((plant) => plant.coordinateStatus === 'outlier').length,
+    missingCoordinateCount: plants.filter((plant) => plant.coordinateStatus === 'missing').length,
+    familyCount: new Set(plants.map((plant) => plant.familyRaw).filter(Boolean)).size,
+    genusCount: new Set(plants.map((plant) => plant.genusRaw).filter(Boolean)).size,
+    locationAreaCount: new Set(plants.flatMap((plant) => plant.locationAreas)).size,
+    recordsWithEnglishName: plants.filter((plant) => plant.englishName).length,
+    recordsWithScientificName: plants.filter((plant) => plant.scientificName).length,
+    recordsWithBrief: plants.filter((plant) => plant.brief).length,
+    recordsWithFeatures: plants.filter((plant) => plant.features).length,
+    recordsWithFunctionAndApplication: plants.filter((plant) => plant.functionAndApplication).length,
+    recordsWithMediaUrl: plants.filter((plant) => plant.mediaReferences.some((media) => media.url)).length,
+    byFamily: byFamily.map(([familyRaw, records]) => ({
+      familyRaw,
+      familyChinese: records[0].familyChinese,
+      familyLatin: records[0].familyLatin,
+      recordCount: records.length,
+      uniquePlantCount: uniquePlantCount(records),
+    })),
+    byGenus: byGenus.map(([genusRaw, records]) => ({
+      genusRaw,
+      genusChinese: records[0].genusChinese,
+      genusLatin: records[0].genusLatin,
+      recordCount: records.length,
+      uniquePlantCount: uniquePlantCount(records),
+    })),
+    byLocationArea: byLocationArea.map(([locationArea, records]) => ({
+      locationArea,
+      recordCount: records.length,
+      uniquePlantCount: uniquePlantCount(records),
+    })),
+    species,
+  };
+}
+
 export function buildZooGuideSummary(
   animals: ZooAnimal[],
   exhibitAreas: ZooExhibitArea[],
   events: ZooEvent[],
+  plants: ZooPlantRecord[] = [],
 ): ZooGuideSummary {
   const dates = events.flatMap((event) => [event.startDate, event.endDate]).filter((date): date is string => Boolean(date));
+  const plantSummary = buildZooPlantSummary(plants);
   return {
     animalCount: animals.length,
+    plantRecordCount: plants.length,
+    uniquePlantNameCount: plantSummary.uniqueChineseNameCount,
+    uniqueScientificNameCount: plantSummary.uniqueScientificNameCount,
+    plantFamilyCount: plantSummary.familyCount,
+    plantGenusCount: plantSummary.genusCount,
+    plantLocationAreaCount: plantSummary.locationAreaCount,
     exhibitAreaCount: exhibitAreas.length,
     exhibitAreaCategoryCount: new Set(exhibitAreas.map((area) => area.areaCategory)).size,
     eventCount: events.length,

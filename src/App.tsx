@@ -13,6 +13,7 @@ import {
   MapPinned,
   Navigation,
   Search,
+  Sprout,
   X,
 } from 'lucide-react';
 import { getTranslation } from './i18n';
@@ -26,6 +27,7 @@ import type {
   ZooEventStatus,
   ZooExhibitArea,
   ZooGuideSummary,
+  ZooPlantRecord,
 } from './models';
 import {
   buildZooAnimalSummary,
@@ -35,11 +37,11 @@ import {
   getFilterOptions,
   getOfficialTopicPageUrl,
 } from './utils/zooData';
-import { buildZooGuideSummary, getZooEventStatus } from './utils/zooGuideData';
+import { buildZooGuideSummary, buildZooPlantSummary, getZooEventStatus } from './utils/zooGuideData';
 import { assetPath } from './utils/assets';
 
-type Tab = 'animals' | 'exhibits' | 'events' | 'map' | 'overview' | 'notes';
-type SelectedRecord = ZooAnimal | ZooExhibitArea | ZooEvent;
+type Tab = 'animals' | 'plants' | 'exhibits' | 'events' | 'map' | 'overview' | 'notes';
+type SelectedRecord = ZooAnimal | ZooPlantRecord | ZooExhibitArea | ZooEvent;
 type MapPoint = { id: string; latitude: number; longitude: number };
 
 const defaultFilters: Filters = {
@@ -58,6 +60,7 @@ const defaultFilters: Filters = {
 
 const tabIcons = {
   animals: LayoutList,
+  plants: Sprout,
   exhibits: BookOpen,
   events: CalendarDays,
   map: MapPinned,
@@ -65,10 +68,10 @@ const tabIcons = {
   notes: Info,
 };
 
-const mapIcon = (kind: 'animal' | 'exhibit' | 'event', paused = false) =>
+const mapIcon = (kind: 'animal' | 'plant' | 'exhibit' | 'event', paused = false) =>
   L.divIcon({
     className: `guide-marker ${kind}${paused ? ' paused' : ''}`,
-    html: `<span>${kind === 'animal' ? 'A' : kind === 'exhibit' ? 'E' : 'D'}</span>`,
+    html: `<span>${kind === 'animal' ? 'A' : kind === 'plant' ? 'P' : kind === 'exhibit' ? 'E' : 'D'}</span>`,
     iconSize: [30, 30],
     iconAnchor: [15, 15],
   });
@@ -107,29 +110,33 @@ async function loadJson<T>(path: string, fallback: T): Promise<T> {
 
 function useZooGuideData() {
   const [animals, setAnimals] = useState<ZooAnimal[]>([]);
+  const [plants, setPlants] = useState<ZooPlantRecord[]>([]);
   const [exhibitAreas, setExhibitAreas] = useState<ZooExhibitArea[]>([]);
   const [events, setEvents] = useState<ZooEvent[]>([]);
 
   useEffect(() => {
     Promise.all([
       loadJson<ZooAnimal[]>('data/zoo-animals.json', []),
+      loadJson<ZooPlantRecord[]>('data/zoo-plants.json', []),
       loadJson<ZooExhibitArea[]>('data/zoo-exhibit-areas.json', []),
       loadJson<ZooEvent[]>('data/zoo-events.json', []),
     ])
-      .then(([animalRows, areaRows, eventRows]) => {
+      .then(([animalRows, plantRows, areaRows, eventRows]) => {
         setAnimals(animalRows);
+        setPlants(plantRows);
         setExhibitAreas(areaRows);
         setEvents(eventRows.map((event) => ({ ...event, eventStatus: getZooEventStatus(event) })));
       })
       .catch(() => {
         setAnimals([]);
+        setPlants([]);
         setExhibitAreas([]);
         setEvents([]);
       });
   }, []);
 
-  const summary = useMemo(() => buildZooGuideSummary(animals, exhibitAreas, events), [animals, exhibitAreas, events]);
-  return { animals, exhibitAreas, events, summary };
+  const summary = useMemo(() => buildZooGuideSummary(animals, exhibitAreas, events, plants), [animals, exhibitAreas, events, plants]);
+  return { animals, plants, exhibitAreas, events, summary };
 }
 
 function LanguageToggle({ language, setLanguage }: { language: Language; setLanguage: (value: Language) => void }) {
@@ -150,6 +157,7 @@ function MainTabs({ activeTab, setActiveTab, language }: { activeTab: Tab; setAc
   const t = getTranslation(language);
   const labels = {
     animals: t.animalGuide,
+    plants: t.plantGuide,
     exhibits: t.exhibitAreas,
     events: t.events,
     map: t.map,
@@ -522,6 +530,118 @@ function EventGuide({
   );
 }
 
+function sortedUnique(values: Array<string | undefined>) {
+  return [...new Set(values.filter((value): value is string => Boolean(value)))].sort((a, b) => a.localeCompare(b, 'zh-Hant'));
+}
+
+function PlantGuide({
+  plants,
+  search,
+  language,
+  onSelect,
+}: {
+  plants: ZooPlantRecord[];
+  search: string;
+  language: Language;
+  onSelect: (plant: ZooPlantRecord) => void;
+}) {
+  const t = getTranslation(language);
+  const [family, setFamily] = useState('');
+  const [genus, setGenus] = useState('');
+  const [location, setLocation] = useState('');
+  const [hasScientificName, setHasScientificName] = useState(false);
+  const [hasCoordinates, setHasCoordinates] = useState(false);
+  const [hasFeatures, setHasFeatures] = useState(false);
+  const [hasUse, setHasUse] = useState(false);
+  const [hasMedia, setHasMedia] = useState(false);
+  const families = sortedUnique(plants.map((plant) => plant.familyRaw));
+  const genera = sortedUnique(plants.map((plant) => plant.genusRaw));
+  const locations = sortedUnique(plants.flatMap((plant) => plant.locationAreas));
+  const query = search.trim().toLocaleLowerCase();
+  const filtered = plants.filter((plant) => {
+    const searchable = [
+      plant.chineseName,
+      plant.englishName,
+      plant.scientificName,
+      plant.familyRaw,
+      plant.genusRaw,
+      plant.locationRaw,
+      plant.brief,
+      plant.features,
+      plant.keywords.join(' '),
+      plant.alsoKnown.join(' '),
+    ];
+    if (query && !searchable.some((value) => value?.toLocaleLowerCase().includes(query))) return false;
+    if (family && plant.familyRaw !== family) return false;
+    if (genus && plant.genusRaw !== genus) return false;
+    if (location && !plant.locationAreas.includes(location)) return false;
+    if (hasScientificName && !plant.scientificName) return false;
+    if (hasCoordinates && plant.coordinateStatus !== 'valid') return false;
+    if (hasFeatures && !plant.features) return false;
+    if (hasUse && !plant.functionAndApplication) return false;
+    if (hasMedia && !plant.mediaReferences.length) return false;
+    return true;
+  });
+  const summary = buildZooPlantSummary(filtered);
+  const firstBySpecies = new Map(summary.species.map((species) => [species.speciesKey, filtered.find((plant) => plant.scientificName === species.scientificName || plant.chineseName === species.chineseName)]));
+  return (
+    <>
+      <header className="section-heading">
+        <h2>{t.plantGuide}</h2>
+        <p>{t.plantSubtitle}</p>
+      </header>
+      <section className="filters">
+        <div className="filter-grid compact">
+          <label>{t.plantFamily}<select value={family} onChange={(event) => setFamily(event.target.value)}><option value="">{t.all}</option>{families.map((value) => <option key={value}>{value}</option>)}</select></label>
+          <label>{t.plantGenus}<select value={genus} onChange={(event) => setGenus(event.target.value)}><option value="">{t.all}</option>{genera.map((value) => <option key={value}>{value}</option>)}</select></label>
+          <label>{t.plantLocation}<select value={location} onChange={(event) => setLocation(event.target.value)}><option value="">{t.all}</option>{locations.map((value) => <option key={value}>{value}</option>)}</select></label>
+        </div>
+        <div className="toggles">
+          <label><input type="checkbox" checked={hasScientificName} onChange={(event) => setHasScientificName(event.target.checked)} />{t.hasScientificName}</label>
+          <label><input type="checkbox" checked={hasCoordinates} onChange={(event) => setHasCoordinates(event.target.checked)} />{t.hasCoordinates}</label>
+          <label><input type="checkbox" checked={hasFeatures} onChange={(event) => setHasFeatures(event.target.checked)} />{t.hasPlantFeatures}</label>
+          <label><input type="checkbox" checked={hasUse} onChange={(event) => setHasUse(event.target.checked)} />{t.hasPlantUse}</label>
+          <label><input type="checkbox" checked={hasMedia} onChange={(event) => setHasMedia(event.target.checked)} />{t.hasMediaReference}</label>
+        </div>
+      </section>
+      <ResultLine count={filtered.length} language={language} />
+      <p className="notice subtle">{t.plantDatasetNotice}</p>
+      {summary.species.length ? (
+        <>
+          <section className="directory-grid">
+            {summary.species.map((species) => {
+              const plant = firstBySpecies.get(species.speciesKey);
+              return (
+                <article className="animal-card plant-card" key={species.speciesKey}>
+                  <div>
+                    <p className="eyebrow">{[species.familyChinese, species.genusChinese].filter(Boolean).join(' · ')}</p>
+                    <h3>{species.chineseName}</h3>
+                    {species.englishName && <p>{species.englishName}</p>}
+                    {species.scientificName && <em>{species.scientificName}</em>}
+                  </div>
+                  <div className="tags">
+                    <span>{species.recordCount} {t.plantRecordUnit}</span>
+                    <span>{species.coordinateCount} {t.coordinatePointUnit}</span>
+                    {species.locationAreas.slice(0, 3).map((area) => <span key={area}>{area}</span>)}
+                  </div>
+                  {plant && <button onClick={() => onSelect(plant)}>{t.viewDetails}</button>}
+                </article>
+              );
+            })}
+          </section>
+          <div className="chart-grid">
+            <BarList title={t.plantsByFamily} rows={summary.byFamily.map((row) => ({ label: row.familyRaw, count: row.uniquePlantCount }))} />
+            <BarList title={t.plantsByGenus} rows={summary.byGenus.map((row) => ({ label: row.genusRaw, count: row.uniquePlantCount }))} />
+            <BarList title={t.plantsByLocation} rows={summary.byLocationArea.map((row) => ({ label: row.locationArea, count: row.uniquePlantCount }))} />
+          </div>
+        </>
+      ) : (
+        <EmptyState language={language} />
+      )}
+    </>
+  );
+}
+
 function MapBounds({ points }: { points: MapPoint[] }) {
   const map = useMap();
   useEffect(() => {
@@ -546,26 +666,39 @@ function clusterEvents(events: ZooEvent[]) {
   return [...clusters.values()];
 }
 
+function clusterPlants(plants: ZooPlantRecord[]) {
+  const clusters = new Map<string, Array<ZooPlantRecord & MapPoint>>();
+  for (const plant of validPoints(plants)) {
+    const key = `${plant.latitude.toFixed(5)}:${plant.longitude.toFixed(5)}`;
+    clusters.set(key, [...(clusters.get(key) ?? []), plant]);
+  }
+  return [...clusters.values()];
+}
+
 function GuideMap({
   animals,
+  plants,
   areas,
   events,
   language,
   onSelect,
 }: {
   animals: ZooAnimal[];
+  plants: ZooPlantRecord[];
   areas: ZooExhibitArea[];
   events: ZooEvent[];
   language: Language;
   onSelect: (record: SelectedRecord) => void;
 }) {
   const t = getTranslation(language);
-  const [layers, setLayers] = useState({ animals: true, exhibits: true, events: true });
+  const [layers, setLayers] = useState({ animals: true, plants: true, exhibits: true, events: true });
   const animalPoints = validPoints(animals);
+  const plantPoints = validPoints(plants);
   const areaPoints = validPoints(areas);
   const eventPoints = validPoints(events);
   const points = [
     ...(layers.animals ? animalPoints : []),
+    ...(layers.plants ? plantPoints : []),
     ...(layers.exhibits ? areaPoints : []),
     ...(layers.events ? eventPoints : []),
   ];
@@ -573,6 +706,7 @@ function GuideMap({
     <section className="map-section">
       <div className="layer-toggles">
         <label><input type="checkbox" checked={layers.animals} onChange={(event) => setLayers({ ...layers, animals: event.target.checked })} />{t.animals}</label>
+        <label><input type="checkbox" checked={layers.plants} onChange={(event) => setLayers({ ...layers, plants: event.target.checked })} />{t.plantLayer}</label>
         <label><input type="checkbox" checked={layers.exhibits} onChange={(event) => setLayers({ ...layers, exhibits: event.target.checked })} />{t.exhibitLayer}</label>
         <label><input type="checkbox" checked={layers.events} onChange={(event) => setLayers({ ...layers, events: event.target.checked })} />{t.eventLayer}</label>
       </div>
@@ -590,6 +724,17 @@ function GuideMap({
               <Popup><div className="popup-content"><strong>{area.areaName}</strong><span>{areaCategoryLabel(area.areaCategory, language)}</span><span>{area.relatedAnimalIds?.length ?? 0} {t.relatedAnimalCount}</span><button onClick={() => onSelect(area)}>{t.viewDetails}</button></div></Popup>
             </Marker>
           ))}
+          {layers.plants && clusterPlants(plants).map((cluster) => {
+            const first = cluster[0];
+            if (cluster.length > 1) {
+              return (
+                <CircleMarker key={cluster.map((plant) => plant.id).join('|')} center={[first.latitude, first.longitude]} radius={12 + Math.min(cluster.length, 10)} pathOptions={{ color: '#477a36', fillColor: '#84b35b', fillOpacity: 0.82, weight: 2 }}>
+                  <Popup><div className="popup-content"><strong>{cluster.length} {t.plants}</strong>{cluster.slice(0, 8).map((plant) => <button key={plant.id} onClick={() => onSelect(plant)}>{plant.chineseName}</button>)}</div></Popup>
+                </CircleMarker>
+              );
+            }
+            return <Marker key={first.id} position={[first.latitude, first.longitude]} icon={mapIcon('plant')}><Popup><div className="popup-content"><strong>{first.chineseName}</strong><span>{first.scientificName}</span><span>{first.locationAreas.join('、')}</span><button onClick={() => onSelect(first)}>{t.viewDetails}</button></div></Popup></Marker>;
+          })}
           {layers.events && clusterEvents(events).map((cluster) => {
             const first = cluster[0];
             if (cluster.length > 1) {
@@ -650,12 +795,14 @@ function BarList({ title, rows }: { title: string; rows: Array<{ label: string; 
 
 function Overview({
   animals,
+  plants,
   areas,
   events,
   summary,
   language,
 }: {
   animals: ZooAnimal[];
+  plants: ZooPlantRecord[];
   areas: ZooExhibitArea[];
   events: ZooEvent[];
   summary: ZooGuideSummary;
@@ -663,8 +810,12 @@ function Overview({
 }) {
   const t = getTranslation(language);
   const animalSummary = buildZooAnimalSummary(animals);
+  const plantSummary = buildZooPlantSummary(plants);
   const cards = [
     [t.totalAnimalRecords, animals.length],
+    [t.plantRecordCount, plants.length],
+    [t.plantSpeciesCount, plantSummary.species.length],
+    [t.plantFamilyCount, summary.plantFamilyCount ?? 0],
     [t.exhibitAreaCount, areas.length],
     [t.exhibitAreasWithCoordinates, areas.filter((area) => area.coordinateStatus === 'valid').length],
     [t.exhibitAreasLinkedToAnimals, areas.filter((area) => area.relatedAnimalIds?.length).length],
@@ -683,6 +834,8 @@ function Overview({
       <div className="chart-grid">
         <BarList title={t.exhibitAreasByCategory} rows={summary.byExhibitAreaCategory.map((row) => ({ label: areaCategoryLabel(row.areaCategory, language), count: row.count }))} />
         <BarList title={t.animalsByExhibitArea} rows={animalSummary.byExhibitArea.map((row) => ({ label: row.exhibitArea, count: row.count }))} />
+        <BarList title={t.plantsByFamily} rows={plantSummary.byFamily.map((row) => ({ label: row.familyRaw, count: row.uniquePlantCount }))} />
+        <BarList title={t.plantsByLocation} rows={plantSummary.byLocationArea.map((row) => ({ label: row.locationArea, count: row.uniquePlantCount }))} />
         <BarList title={t.eventsByCategory} rows={summary.byEventCategory.map((row) => ({ label: eventCategoryLabel(row.eventCategory, language), count: row.count }))} />
         <BarList title={t.eventsByStatus} rows={summary.byEventStatus.map((row) => ({ label: eventStatusLabel(row.eventStatus, language), count: row.count }))} />
         <BarList title={t.eventsByMonth} rows={summary.byEventMonth.map((row) => ({ label: row.month, count: row.count }))} />
@@ -699,6 +852,7 @@ function DataNotes({ language }: { language: Language }) {
       <h2>{t.dataNotes}</h2>
       <p>{t.exhibitDatasetNote}</p>
       <p>{t.eventDatasetNote}</p>
+      <p>{t.plantDatasetNote}</p>
       <p>{t.coordinateNotice}</p>
       <p className="notice">{t.zooMediaLicenseNotice}</p>
       <p className="notice">{t.zooGuideDisclaimer}</p>
@@ -756,6 +910,39 @@ function DetailPanel({
       </aside>
     );
   }
+  if ('module' in record && record.module === 'plants') {
+    return (
+      <aside className="detail-panel" aria-label={record.chineseName}>
+        <button className="icon-button close" onClick={onClose} aria-label="Close"><X size={20} /></button>
+        <p className="eyebrow">{[record.familyRaw, record.genusRaw].filter(Boolean).join(' · ')}</p>
+        <h2>{record.chineseName}</h2>
+        {record.englishName && <p className="latin">{record.englishName}</p>}
+        {record.scientificName && <em>{record.scientificName}</em>}
+        <p>{record.brief || record.summary}</p>
+        <dl>
+          <DetailRow label={t.alias} value={record.alsoKnown.join('、')} />
+          <DetailRow label={t.plantFamily} value={record.familyRaw} />
+          <DetailRow label={t.plantGenus} value={record.genusRaw} />
+          <DetailRow label={t.plantLocation} value={record.locationAreas.join('、')} />
+          <DetailRow label={t.plantFeatures} value={record.features} />
+          <DetailRow label={t.plantUse} value={record.functionAndApplication} />
+          <DetailRow label={t.updatedDate} value={record.updatedDate} />
+          <DetailRow label="WGS84" value={record.latitude !== undefined && record.longitude !== undefined ? `${record.latitude}, ${record.longitude}` : undefined} />
+        </dl>
+        {!!record.mediaReferences.length && (
+          <section>
+            <h3>{t.mediaLinks}</h3>
+            <div className="media-list">
+              {record.mediaReferences.filter((media) => media.url).map((media, index) => (
+                <a key={`${media.kind}-${index}`} href={media.url} target="_blank" rel="noreferrer"><ExternalLink size={16} />{media.alt || media.kind}</a>
+              ))}
+            </div>
+            <p className="notice subtle">{t.zooMediaLicenseNotice}</p>
+          </section>
+        )}
+      </aside>
+    );
+  }
   const animal = record as ZooAnimal;
   const topicUrl = getOfficialTopicPageUrl(animal);
   return (
@@ -784,7 +971,7 @@ function Footer({ language }: { language: Language }) {
 }
 
 export default function App() {
-  const { animals, exhibitAreas, events, summary } = useZooGuideData();
+  const { animals, plants, exhibitAreas, events, summary } = useZooGuideData();
   const [language, setLanguage] = useLanguage();
   const [activeTab, setActiveTab] = useState<Tab>('animals');
   const [search, setSearch] = useState('');
@@ -803,10 +990,11 @@ export default function App() {
         <MainTabs activeTab={activeTab} setActiveTab={setActiveTab} language={language} />
         {!['overview', 'notes'].includes(activeTab) && <GlobalSearch value={search} onChange={setSearch} language={language} />}
         {activeTab === 'animals' && <AnimalGuide animals={animals} filters={filters} setFilters={setAnimalFilters} language={language} onSelect={setSelected} />}
+        {activeTab === 'plants' && <PlantGuide plants={plants} search={search} language={language} onSelect={setSelected} />}
         {activeTab === 'exhibits' && <ExhibitGuide areas={exhibitAreas} animals={animals} search={search} language={language} onSelect={setSelected} />}
         {activeTab === 'events' && <EventGuide events={events} search={search} language={language} onSelect={setSelected} />}
-        {activeTab === 'map' && <GuideMap animals={filterAnimals(animals, filters)} areas={exhibitAreas} events={events} language={language} onSelect={setSelected} />}
-        {activeTab === 'overview' && <Overview animals={animals} areas={exhibitAreas} events={events} summary={summary} language={language} />}
+        {activeTab === 'map' && <GuideMap animals={filterAnimals(animals, filters)} plants={plants} areas={exhibitAreas} events={events} language={language} onSelect={setSelected} />}
+        {activeTab === 'overview' && <Overview animals={animals} plants={plants} areas={exhibitAreas} events={events} summary={summary} language={language} />}
         {activeTab === 'notes' && <DataNotes language={language} />}
       </main>
       <Footer language={language} />

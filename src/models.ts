@@ -1,4 +1,4 @@
-export type ZooGuideModule = 'animals' | 'exhibit_areas' | 'events';
+export type ZooGuideModule = 'animals' | 'plants' | 'exhibit_areas' | 'events';
 
 export type CoordinateStatus = 'valid' | 'missing' | 'outlier' | 'unparsed';
 
@@ -19,6 +19,13 @@ export type ZooMediaItem = {
   description?: string;
   url: string;
   type: 'photo' | 'pdf' | 'audio' | 'video' | 'webpage';
+};
+
+export type ZooMediaReference = {
+  kind: 'image' | 'pdf' | 'audio' | 'video';
+  alt?: string;
+  url?: string;
+  licenseScope: 'source_reference_only';
 };
 
 export type ZooAnimal = {
@@ -128,8 +135,104 @@ export type ZooEvent = {
   source: string;
 };
 
+export type ZooPlantRecord = {
+  id: string;
+  module: 'plants';
+  chineseName: string;
+  englishName?: string;
+  scientificName?: string;
+  summary?: string;
+  keywordsRaw?: string;
+  keywords: string[];
+  alsoKnownRaw?: string;
+  alsoKnown: string[];
+  longitude?: number;
+  latitude?: number;
+  coordinateStatus: CoordinateStatus;
+  locationRaw?: string;
+  locationAreas: string[];
+  familyRaw?: string;
+  familyChinese?: string;
+  familyLatin?: string;
+  genusRaw?: string;
+  genusChinese?: string;
+  genusLatin?: string;
+  brief?: string;
+  features?: string;
+  functionAndApplication?: string;
+  plantCode?: string;
+  sourceContentId?: string;
+  updatedDateRaw?: string;
+  updatedDate?: string;
+  mediaReferences: ZooMediaReference[];
+  matchedExhibitAreaIds?: string[];
+  source: string;
+};
+
+export type ZooPlantSpeciesSummary = {
+  speciesKey: string;
+  chineseName: string;
+  englishName?: string;
+  scientificName?: string;
+  recordCount: number;
+  coordinateCount: number;
+  familyRaw?: string;
+  familyChinese?: string;
+  familyLatin?: string;
+  genusRaw?: string;
+  genusChinese?: string;
+  genusLatin?: string;
+  locationAreas: string[];
+  alsoKnown: string[];
+  latestUpdatedDate?: string;
+};
+
+export type ZooPlantSummary = {
+  totalPlantRecords: number;
+  uniqueChineseNameCount: number;
+  uniqueScientificNameCount: number;
+  validCoordinateCount: number;
+  outlierCoordinateCount: number;
+  missingCoordinateCount: number;
+  familyCount: number;
+  genusCount: number;
+  locationAreaCount: number;
+  recordsWithEnglishName: number;
+  recordsWithScientificName: number;
+  recordsWithBrief: number;
+  recordsWithFeatures: number;
+  recordsWithFunctionAndApplication: number;
+  recordsWithMediaUrl: number;
+  byFamily: Array<{
+    familyRaw: string;
+    familyChinese?: string;
+    familyLatin?: string;
+    recordCount: number;
+    uniquePlantCount: number;
+  }>;
+  byGenus: Array<{
+    genusRaw: string;
+    genusChinese?: string;
+    genusLatin?: string;
+    recordCount: number;
+    uniquePlantCount: number;
+  }>;
+  byLocationArea: Array<{
+    locationArea: string;
+    recordCount: number;
+    uniquePlantCount: number;
+  }>;
+  species: ZooPlantSpeciesSummary[];
+};
+
 export type ZooGuideSummary = {
   animalCount?: number;
+  plantRecordCount?: number;
+  uniquePlantNameCount?: number;
+  uniqueScientificNameCount?: number;
+  plantFamilyCount?: number;
+  plantGenusCount?: number;
+  plantLocationAreaCount?: number;
   exhibitAreaCount: number;
   exhibitAreaCategoryCount: number;
   eventCount: number;

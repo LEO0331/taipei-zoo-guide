@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-23T05:54:10.199Z",
+  "generatedAt": "2026-06-25T01:27:08.634Z",
   "sourceRows": 313,
   "generatedAnimals": 313,
   "coordinateStatus": {
@@ -51,8 +51,8 @@
     },
     "eventStatus": {
       "upcoming": 0,
-      "ongoing": 2,
-      "past": 93,
+      "ongoing": 1,
+      "past": 94,
       "cancelled_or_paused": 21,
       "unknown": 0
     },
@@ -60,14 +60,48 @@
     "matchedAnimals": 38,
     "warnings": []
   },
+  "plants": {
+    "sources": [
+      {
+        "file": "植物資料1150617b.csv",
+        "fileSize": 323984,
+        "encoding": "utf-8-sig",
+        "rows": 276
+      }
+    ],
+    "sourceRows": 276,
+    "generatedRecords": 276,
+    "coordinateStatus": {
+      "valid": 276,
+      "missing": 0,
+      "outlier": 0,
+      "unparsed": 0
+    },
+    "matchedExhibitAreas": 234,
+    "mediaReferenceRecords": 271,
+    "warnings": []
+  },
+  "plantSummary": {
+    "totalPlantRecords": 276,
+    "speciesCount": 100,
+    "familyCount": 77,
+    "genusCount": 92,
+    "locationAreaCount": 19
+  },
   "guideSummary": {
     "animalCount": 313,
+    "plantRecordCount": 276,
+    "uniquePlantNameCount": 99,
+    "uniqueScientificNameCount": 100,
+    "plantFamilyCount": 77,
+    "plantGenusCount": 92,
+    "plantLocationAreaCount": 19,
     "exhibitAreaCount": 17,
     "exhibitAreaCategoryCount": 3,
     "eventCount": 116,
     "upcomingEventCount": 0,
-    "ongoingEventCount": 2,
-    "pastEventCount": 93,
+    "ongoingEventCount": 1,
+    "pastEventCount": 94,
     "pausedOrCancelledEventCount": 21,
     "eventDateMin": "2025-12-01",
     "eventDateMax": "2026-11-30",
@@ -118,7 +152,7 @@
     "byEventStatus": [
       {
         "eventStatus": "past",
-        "count": 93
+        "count": 94
       },
       {
         "eventStatus": "cancelled_or_paused",
@@ -126,7 +160,7 @@
       },
       {
         "eventStatus": "ongoing",
-        "count": 2
+        "count": 1
       }
     ],
     "byEventMonth": [

@@ -1,17 +1,19 @@
-# Taipei Zoo Animal Guide / 台北動物園動物導覽
+# Taipei Zoo Guide / 台北動物園導覽
 
 Mobile-first bilingual visitor guide built with Vite, React, TypeScript, and Leaflet.
 
-Now includes exhibit-area guide and event calendar / 新增館區導覽與行事曆.
+Now includes animal, plant, exhibit-area, and event-calendar guide modules.
 
-The app keeps animal, exhibit-area, and event records as separate data types and links them conservatively through area names, aliases, locations, and direct animal-name matches. Traditional Chinese is the default language; the English toggle persists in `localStorage`.
+The app keeps animal, plant, exhibit-area, and event records as separate data types. Plant records are linked to exhibit areas only through location text, aliases, and coordinates; they are not linked to animal records. Traditional Chinese is the default language; the English toggle persists in `localStorage`.
 
 ## Data Sources
 
 - Animal dataset: https://data.taipei/dataset/detail?id=5cb73231-b741-48b3-bec3-2ef57bb10029
+- Plant dataset: https://data.taipei/dataset/detail?id=48c4d6a7-4b09-4d1f-9739-ee837d302bd1
 - Exhibit-area dataset: https://data.taipei/dataset/detail?id=1ed45a8a-d26a-4a5f-b544-788a4071eea2
 - Event-calendar dataset: https://data.taipei/dataset/detail?id=61ff4b3a-8a8a-47e4-96ec-e180b2abbfdb
 - Animal raw data: `data/raw/zoo-animals/`
+- Plant raw data: `data/raw/zoo-plants/`
 - Exhibit-area raw data: `data/raw/zoo-exhibit-areas/`
 - Event raw data: `data/raw/zoo-events/`
 - Frontend static data: `public/data/`
@@ -21,17 +23,18 @@ The browser never calls Taipei Open Data directly. It reads generated local JSON
 ## Visitor Guide Modules
 
 - Animal Guide / 動物導覽
+- Plant Guide / 植物導覽
 - Exhibit Areas / 館區導覽
 - Events / 行事曆
 - Map / 地圖
 - Data Overview / 資料概覽
 - Data Notes / 資料說明
 
-The map has separate animal, exhibit-area, and event layers. Paused or cancelled events remain visible when their filter is enabled and are labelled distinctly.
+The map has separate animal, plant, exhibit-area, and event layers. Plant records are plotted as coordinate records and clustered when multiple plants share the same point. Paused or cancelled events remain visible when their filter is enabled and are labelled distinctly.
 
 ## Coordinates and Dates
 
-Animal and exhibit-area coordinates are validated against Taipei Zoo bounds. Event coordinates support WKT values in either form:
+Animal, plant, and exhibit-area coordinates are validated against Taipei Zoo bounds. Event coordinates support WKT values in either form:
 
 ```txt
 POINT(121.5827058 24.9983016)
@@ -40,7 +43,7 @@ MULTIPOINT((121.5827058,24.9983016))
 
 Missing, outlier, or unparsed coordinates remain in list views and are omitted from map markers.
 
-Event dates are normalized to ISO `YYYY-MM-DD`. Event status uses the Asia/Taipei calendar date and returns upcoming, ongoing, past, paused/cancelled, or unknown.
+Plant update dates and event dates are normalized to ISO `YYYY-MM-DD`. Event status uses the Asia/Taipei calendar date and returns upcoming, ongoing, past, paused/cancelled, or unknown.
 
 ## Multimedia Licensing
 
@@ -70,6 +73,9 @@ RESOURCE_URL="https://example.gov.tw/areas.csv" npm run data:fetch:exhibit-areas
 
 LOCAL_CSV="/path/to/events.csv" npm run data:fetch:events
 RESOURCE_URL="https://example.gov.tw/events.csv" npm run data:fetch:events -- --force
+
+LOCAL_CSV="/path/to/plants.csv" npm run data:fetch:plants
+RESOURCE_URL="https://example.gov.tw/plants.csv" npm run data:fetch:plants -- --force
 ```
 
 Existing CSV files are reused unless `--force` is passed. Source metadata records the dataset page, source, time, file size, encoding, and conversion note.
@@ -86,6 +92,9 @@ Generated files:
 
 - `public/data/zoo-animals.json`
 - `public/data/zoo-animal-summary.json`
+- `public/data/zoo-plants.json`
+- `public/data/zoo-plant-species.json`
+- `public/data/zoo-plant-summary.json`
 - `public/data/zoo-exhibit-areas.json`
 - `public/data/zoo-events.json`
 - `public/data/zoo-guide-summary.json`

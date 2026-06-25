@@ -71,6 +71,14 @@
       "dependencies": ["feat-001", "feat-002", "feat-003"],
       "status": "done",
       "evidence": "Converted 17 exhibit areas and 116 events. All coordinates valid; 13 areas linked to animals, 68 events linked to areas, and 38 events linked to animals. npm test, local build, Pages build, desktop/mobile browser QA, and ./init.sh passed."
+    },
+    {
+      "id": "feat-010",
+      "name": "Plant visitor guide",
+      "description": "Add Taipei Zoo plant CSV data, static conversion, species summary, Plant Guide directory, taxonomy/location filters, plant map layer, overview metrics, data notes, and source-only media references.",
+      "dependencies": ["feat-001", "feat-002", "feat-009"],
+      "status": "done",
+      "evidence": "Converted 276 plant location records into 100 species. npm test and npm run build passed; final baseline verification is recorded in progress.md."
     }
   ]
 }

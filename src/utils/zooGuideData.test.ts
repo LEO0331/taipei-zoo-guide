@@ -4,14 +4,21 @@ import {
   classifyExhibitAreaCategory,
   classifyZooEventCategory,
   decodeCsvBuffer,
+  buildZooPlantSummary,
   getZooEventStatus,
+  getPlantSpeciesKey,
   matchEventToAnimals,
   matchEventToExhibitArea,
+  matchPlantToExhibitAreas,
   normalizeExhibitAreaRow,
+  normalizePlantRow,
   normalizeZooEventRow,
   parseCsv,
+  parseChineseLatinTaxonomy,
+  parsePlantLocationAreas,
   parseZooDate,
   parseZooWktCoordinate,
+  splitTextList,
 } from './zooGuideData';
 import type { ZooAnimal, ZooEvent, ZooExhibitArea } from '../models';
 
@@ -201,5 +208,73 @@ describe('visitor guide data utilities', () => {
       upcomingEventCount: 1,
     });
     expect(summary.exhibitAreasWithAnimalCount[0]).toMatchObject({ areaName: '臺灣動物區', animalCount: 1 });
+  });
+
+  it('normalizes plant rows without deduping repeated plant locations', () => {
+    expect(parseChineseLatinTaxonomy('桑科Moraceae')).toEqual({ raw: '桑科Moraceae', chinese: '桑科', latin: 'Moraceae' });
+    expect(parsePlantLocationAreas('臺灣動物區；兩棲爬蟲館, 門內外廣場')).toEqual([
+      '臺灣動物區',
+      '兩棲爬蟲動物館',
+      '大門內外廣場',
+    ]);
+    expect(splitTextList('苞飯花、拘那花\n小果紫薇')).toEqual(['苞飯花', '拘那花', '小果紫薇']);
+
+    const rawPlant = {
+      F_Name_Ch: '九芎',
+      F_AlsoKnown: '苞飯花、拘那花',
+      F_Longitude: '121.5805',
+      F_Latitude: '24.9979',
+      F_Location: '臺灣動物區；兩棲爬蟲館',
+      F_Name_En: 'Subcostate Crape Myrtle',
+      F_Name_Latin: 'Lagerstroemia subcostata',
+      F_Family: '千屈菜科 Lythraceae',
+      F_Genus: '紫薇屬Lagerstroemia',
+      F_Brief: '原生樹種',
+      'F_Function&Application': '用途文字',
+      F_Pic01_ALT: '九芎果實',
+      F_Pic01_URL: 'http://example.test/plant.jpg',
+      F_Update: '2025/12/3',
+      F_CID: '7',
+    };
+    const first = normalizePlantRow(rawPlant, 0);
+    const second = normalizePlantRow({ ...rawPlant, F_Longitude: '121.5806', F_Latitude: '24.9980' }, 1);
+
+    expect(first).toMatchObject({
+      module: 'plants',
+      chineseName: '九芎',
+      scientificName: 'Lagerstroemia subcostata',
+      familyChinese: '千屈菜科',
+      familyLatin: 'Lythraceae',
+      genusChinese: '紫薇屬',
+      genusLatin: 'Lagerstroemia',
+      updatedDate: '2025-12-03',
+      coordinateStatus: 'valid',
+      mediaReferences: [{ kind: 'image', alt: '九芎果實', url: 'http://example.test/plant.jpg', licenseScope: 'source_reference_only' }],
+    });
+    expect(first.id).not.toBe(second.id);
+    expect(getPlantSpeciesKey(first)).toBe('latin:lagerstroemiasubcostata');
+  });
+
+  it('summarizes plant records and matches only direct exhibit-area names', () => {
+    const areas = [
+      { id: 'taiwan', module: 'exhibit_areas', areaCategory: 'outdoor', areaName: '臺灣動物區', coordinateStatus: 'valid', source: 'test' },
+      { id: 'panda', module: 'exhibit_areas', areaCategory: 'indoor', areaName: '新光特展館（大貓熊館）', coordinateStatus: 'valid', source: 'test' },
+    ] satisfies ZooExhibitArea[];
+    const plants = [
+      normalizePlantRow({ F_Name_Ch: '九芎', F_Name_Latin: 'Lagerstroemia subcostata', F_Family: '千屈菜科 Lythraceae', F_Genus: '紫薇屬Lagerstroemia', F_Longitude: '121.5805', F_Latitude: '24.9979', F_Location: '臺灣動物區', F_Update: '2025/12/3' }, 0),
+      normalizePlantRow({ F_Name_Ch: '九芎', F_Name_Latin: 'Lagerstroemia subcostata', F_Family: '千屈菜科 Lythraceae', F_Genus: '紫薇屬Lagerstroemia', F_Longitude: '121.5806', F_Latitude: '24.9980', F_Location: '大貓熊館', F_Update: '2025/12/4' }, 1),
+    ];
+    expect(matchPlantToExhibitAreas(plants[1], areas)).toEqual(['panda']);
+    const summary = buildZooPlantSummary(plants);
+    expect(summary).toMatchObject({
+      totalPlantRecords: 2,
+      uniqueChineseNameCount: 1,
+      uniqueScientificNameCount: 1,
+      validCoordinateCount: 2,
+      familyCount: 1,
+      genusCount: 1,
+    });
+    expect(summary.species).toHaveLength(1);
+    expect(summary.species[0]).toMatchObject({ chineseName: '九芎', recordCount: 2, coordinateCount: 2, latestUpdatedDate: '2025-12-04' });
   });
 });

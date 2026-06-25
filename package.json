@@ -11,9 +11,11 @@
     "fetch:data": "tsx scripts/fetchZooAnimalData.ts",
     "data:fetch:exhibit-areas": "tsx scripts/fetchZooExhibitAreas.ts",
     "data:fetch:events": "tsx scripts/fetchZooEvents.ts",
-    "convert:data": "tsx scripts/convertZooAnimalData.ts && tsx scripts/convertZooExhibitAreas.ts && tsx scripts/convertZooEvents.ts && tsx scripts/buildZooGuideSummary.ts",
+    "data:fetch:plants": "tsx scripts/fetchZooPlants.ts",
+    "convert:data": "tsx scripts/convertZooAnimalData.ts && tsx scripts/convertZooExhibitAreas.ts && tsx scripts/convertZooEvents.ts && tsx scripts/convertZooPlants.ts && tsx scripts/buildZooPlantSummary.ts && tsx scripts/buildZooGuideSummary.ts",
     "data:convert:exhibit-areas": "tsx scripts/convertZooExhibitAreas.ts",
-    "data:convert:events": "tsx scripts/convertZooEvents.ts"
+    "data:convert:events": "tsx scripts/convertZooEvents.ts",
+    "data:convert:plants": "tsx scripts/convertZooPlants.ts && tsx scripts/buildZooPlantSummary.ts"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",

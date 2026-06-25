@@ -296,6 +296,10 @@ input[type="date"] {
   background: var(--clay);
 }
 
+.guide-marker.plant {
+  background: #477a36;
+}
+
 .guide-marker.paused {
   filter: grayscale(0.8);
   opacity: 0.75;
@@ -720,6 +724,7 @@ footer {
 }
 
 .media-list {
+  display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
 }

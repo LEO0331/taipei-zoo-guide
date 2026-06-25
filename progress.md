@@ -2,41 +2,41 @@
 
 ## Current State
 
-**Last Updated:** 2026-06-23 13:52 Asia/Taipei
+**Last Updated:** 2026-06-25 Asia/Taipei
 **Active Feature:** none
 
 ## Completed
 
-- [x] Existing animal guide and static animal data pipeline remain working.
-- [x] Added `臺北市立動物園_館區簡介` from the supplied UTF-8-SIG CSV.
-- [x] Added `臺北市立動物園_行事曆` from the supplied UTF-8-SIG CSV.
-- [x] Added UTF-8-SIG / UTF-8 / Big5 decoding, tolerant dates, WKT parsing, categories, Asia/Taipei event status, keywords, and conversion warnings.
-- [x] Added conservative animal-area, event-area, and event-animal links.
-- [x] Added six bilingual modules, exhibit/event filters, three map layers, detail panels, overview metrics, and data notes.
-- [x] Updated the service worker, README, package scripts, and source metadata.
+- [x] Existing animal guide, exhibit-area guide, event calendar, static data pipeline, and PWA shell remain working.
+- [x] Added `臺北市立動物園_植物資料` from the supplied UTF-8-SIG CSV.
+- [x] Added plant normalization for names, aliases, taxonomy, location aliases, dates, coordinates, external media references, and conversion warnings.
+- [x] Added plant species summary JSON while keeping plant records separate from animal records.
+- [x] Added bilingual Plant Guide, taxonomy/location filters, plant map layer, plant detail panel, overview metrics, data notes, footer/source text, and service-worker cache entries.
+- [x] Preserved multimedia licensing rule: plant media URLs stay as source-only external references and are not embedded, downloaded, rehosted, or cached.
 
 ## Generated Data
 
-- Exhibit areas: 17, all with valid coordinates.
-- Events: 116, all with valid coordinates.
-- Event status on 2026-06-23: 2 ongoing, 93 past, 21 paused/cancelled.
-- Relationships: 13 areas linked to animals, 68 events linked to areas, 38 events linked to animals.
-- Multimedia remains external-link only and is not downloaded, embedded, rehosted, or cached.
+- Animals: 313 records.
+- Exhibit areas: 17 records.
+- Events: 116 records.
+- Plants: 276 location records grouped into 100 species.
+- Plant relationships: exhibit-area matching is text/location based only; no plant-animal relationships were added.
 
 ## Verification
 
-- [x] `npm test`: 2 files, 14 tests passed.
-- [x] `npm run convert:data`: 313 animals, 17 areas, 116 events.
+- [x] `npm run data:fetch:plants`: prepared `data/raw/zoo-plants/植物資料1150617b.csv` and source metadata.
+- [x] `npm run convert:data`: 313 animals, 17 areas, 116 events, 276 plants, 100 plant species.
+- [x] `npm test`: 2 files, 16 tests passed.
 - [x] `npm run build`: passed.
 - [x] `GITHUB_PAGES=true npm run build`: passed.
-- [x] Desktop browser QA: six tabs, filters, map layers, details, overview, and English toggle passed.
-- [x] Mobile browser QA at 390x844: navigation, filters, event list, overview, and bottom detail panel passed.
+- [x] Browser QA: Plant Guide, plant detail panel, map plant layer, English labels, and mobile 390x844 layout passed.
+- [x] `./init.sh`: passed, including `npm ci`, conversion, tests, builds, Pages build, and `npm audit --audit-level=moderate`.
 
 ## Remaining Risk
 
-- OpenStreetMap tile requests were blocked by the sandbox browser (`ERR_INVALID_HANDLE`); Leaflet and all local markers rendered correctly.
-- Live exhibit/event CSV resource URLs are not hardcoded because only dataset pages and uploaded CSV files were supplied. Fetch scripts accept `RESOURCE_URL` or `LOCAL_CSV`.
+- Live plant CSV resource URL is not hardcoded because the uploaded CSV was supplied directly. Use `RESOURCE_URL` or `LOCAL_CSV` for live refresh.
+- Plant-to-area links are conservative and based on dataset location text/aliases; ambiguous free-text locations may remain unlinked.
 
 ## Next
 
-The only unfinished tracked feature remains `feat-005` browser smoke testing history; this session completed browser QA for the new visitor-guide surfaces.
+No active task remains. The next session can restart from `./init.sh`.

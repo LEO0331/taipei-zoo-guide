@@ -1,11 +1,17 @@
 {
   "animalCount": 313,
+  "plantRecordCount": 276,
+  "uniquePlantNameCount": 99,
+  "uniqueScientificNameCount": 100,
+  "plantFamilyCount": 77,
+  "plantGenusCount": 92,
+  "plantLocationAreaCount": 19,
   "exhibitAreaCount": 17,
   "exhibitAreaCategoryCount": 3,
   "eventCount": 116,
   "upcomingEventCount": 0,
-  "ongoingEventCount": 2,
-  "pastEventCount": 93,
+  "ongoingEventCount": 1,
+  "pastEventCount": 94,
   "pausedOrCancelledEventCount": 21,
   "eventDateMin": "2025-12-01",
   "eventDateMax": "2026-11-30",
@@ -56,7 +62,7 @@
   "byEventStatus": [
     {
       "eventStatus": "past",
-      "count": 93
+      "count": 94
     },
     {
       "eventStatus": "cancelled_or_paused",
@@ -64,7 +70,7 @@
     },
     {
       "eventStatus": "ongoing",
-      "count": 2
+      "count": 1
     }
   ],
   "byEventMonth": [
