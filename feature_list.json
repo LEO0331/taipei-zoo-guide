@@ -79,6 +79,14 @@
       "dependencies": ["feat-001", "feat-002", "feat-009"],
       "status": "done",
       "evidence": "Converted 276 plant location records into 100 species. npm test and npm run build passed; final baseline verification is recorded in progress.md."
+    },
+    {
+      "id": "feat-011",
+      "name": "Taipei biodiversity survey points",
+      "description": "Add Taipei city biodiversity indicator species survey point data as a separate urban ecology module with annual CSV fetching, conversion, summary JSON, filters, clustered map layer, data table, notes, and PWA cache entries.",
+      "dependencies": ["feat-001", "feat-009", "feat-010"],
+      "status": "done",
+      "evidence": "Fetched 8 annual CSV resources and converted 72,286 biodiversity survey point records covering 2017-2024 and 2,318 species names. Verification recorded in progress.md."
     }
   ]
 }

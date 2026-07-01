@@ -19,8 +19,11 @@ import {
 import { getTranslation } from './i18n';
 import type {
   ExhibitAreaCategory,
+  BiodiversitySpeciesClassGroup,
+  BiodiversitySurveyMethodCategory,
   Filters,
   Language,
+  TaipeiBiodiversitySpeciesSurveyPointRecord,
   ZooAnimal,
   ZooEvent,
   ZooEventCategory,
@@ -37,11 +40,11 @@ import {
   getFilterOptions,
   getOfficialTopicPageUrl,
 } from './utils/zooData';
-import { buildZooGuideSummary, buildZooPlantSummary, getZooEventStatus } from './utils/zooGuideData';
+import { buildTaipeiBiodiversitySpeciesSurveyPointSummary, buildZooGuideSummary, buildZooPlantSummary, getZooEventStatus } from './utils/zooGuideData';
 import { assetPath } from './utils/assets';
 
-type Tab = 'animals' | 'plants' | 'exhibits' | 'events' | 'map' | 'overview' | 'notes';
-type SelectedRecord = ZooAnimal | ZooPlantRecord | ZooExhibitArea | ZooEvent;
+type Tab = 'animals' | 'plants' | 'biodiversity' | 'exhibits' | 'events' | 'map' | 'overview' | 'notes';
+type SelectedRecord = ZooAnimal | ZooPlantRecord | TaipeiBiodiversitySpeciesSurveyPointRecord | ZooExhibitArea | ZooEvent;
 type MapPoint = { id: string; latitude: number; longitude: number };
 
 const defaultFilters: Filters = {
@@ -61,6 +64,7 @@ const defaultFilters: Filters = {
 const tabIcons = {
   animals: LayoutList,
   plants: Sprout,
+  biodiversity: Globe2,
   exhibits: BookOpen,
   events: CalendarDays,
   map: MapPinned,
@@ -68,10 +72,10 @@ const tabIcons = {
   notes: Info,
 };
 
-const mapIcon = (kind: 'animal' | 'plant' | 'exhibit' | 'event', paused = false) =>
+const mapIcon = (kind: 'animal' | 'plant' | 'biodiversity' | 'exhibit' | 'event', paused = false) =>
   L.divIcon({
     className: `guide-marker ${kind}${paused ? ' paused' : ''}`,
-    html: `<span>${kind === 'animal' ? 'A' : kind === 'plant' ? 'P' : kind === 'exhibit' ? 'E' : 'D'}</span>`,
+    html: `<span>${kind === 'animal' ? 'A' : kind === 'plant' ? 'P' : kind === 'biodiversity' ? 'B' : kind === 'exhibit' ? 'E' : 'D'}</span>`,
     iconSize: [30, 30],
     iconAnchor: [15, 15],
   });
@@ -111,6 +115,7 @@ async function loadJson<T>(path: string, fallback: T): Promise<T> {
 function useZooGuideData() {
   const [animals, setAnimals] = useState<ZooAnimal[]>([]);
   const [plants, setPlants] = useState<ZooPlantRecord[]>([]);
+  const [biodiversity, setBiodiversity] = useState<TaipeiBiodiversitySpeciesSurveyPointRecord[]>([]);
   const [exhibitAreas, setExhibitAreas] = useState<ZooExhibitArea[]>([]);
   const [events, setEvents] = useState<ZooEvent[]>([]);
 
@@ -118,25 +123,28 @@ function useZooGuideData() {
     Promise.all([
       loadJson<ZooAnimal[]>('data/zoo-animals.json', []),
       loadJson<ZooPlantRecord[]>('data/zoo-plants.json', []),
+      loadJson<TaipeiBiodiversitySpeciesSurveyPointRecord[]>('data/taipei-biodiversity-species-survey-points.json', []),
       loadJson<ZooExhibitArea[]>('data/zoo-exhibit-areas.json', []),
       loadJson<ZooEvent[]>('data/zoo-events.json', []),
     ])
-      .then(([animalRows, plantRows, areaRows, eventRows]) => {
+      .then(([animalRows, plantRows, biodiversityRows, areaRows, eventRows]) => {
         setAnimals(animalRows);
         setPlants(plantRows);
+        setBiodiversity(biodiversityRows);
         setExhibitAreas(areaRows);
         setEvents(eventRows.map((event) => ({ ...event, eventStatus: getZooEventStatus(event) })));
       })
       .catch(() => {
         setAnimals([]);
         setPlants([]);
+        setBiodiversity([]);
         setExhibitAreas([]);
         setEvents([]);
       });
   }, []);
 
-  const summary = useMemo(() => buildZooGuideSummary(animals, exhibitAreas, events, plants), [animals, exhibitAreas, events, plants]);
-  return { animals, plants, exhibitAreas, events, summary };
+  const summary = useMemo(() => buildZooGuideSummary(animals, exhibitAreas, events, plants, biodiversity), [animals, exhibitAreas, events, plants, biodiversity]);
+  return { animals, plants, biodiversity, exhibitAreas, events, summary };
 }
 
 function LanguageToggle({ language, setLanguage }: { language: Language; setLanguage: (value: Language) => void }) {
@@ -158,6 +166,7 @@ function MainTabs({ activeTab, setActiveTab, language }: { activeTab: Tab; setAc
   const labels = {
     animals: t.animalGuide,
     plants: t.plantGuide,
+    biodiversity: t.biodiversity,
     exhibits: t.exhibitAreas,
     events: t.events,
     map: t.map,
@@ -642,6 +651,124 @@ function PlantGuide({
   );
 }
 
+function speciesClassGroupLabel(group: BiodiversitySpeciesClassGroup, language: Language) {
+  const t = getTranslation(language);
+  return {
+    bird: t.bird,
+    mammal: t.mammal,
+    reptile: t.reptile,
+    amphibian: t.amphibian,
+    fish: t.fish,
+    insect: t.insect,
+    arachnid: t.arachnid,
+    crustacean: t.crustacean,
+    mollusk: t.mollusk,
+    plant: t.plant,
+    fungus: t.fungus,
+    other: t.other,
+    unknown: t.unknown,
+  }[group];
+}
+
+function surveyMethodCategoryLabel(category: BiodiversitySurveyMethodCategory, language: Language) {
+  const t = getTranslation(language);
+  return {
+    visual_observation: t.visualObservation,
+    transect: t.transect,
+    point_count: t.pointCount,
+    trap: t.trap,
+    netting: t.netting,
+    audio: t.audio,
+    camera: t.camera,
+    literature_or_record: t.literatureOrRecord,
+    other: t.other,
+    unknown: t.unknown,
+  }[category];
+}
+
+function BiodiversityGuide({
+  records,
+  search,
+  language,
+  onSelect,
+}: {
+  records: TaipeiBiodiversitySpeciesSurveyPointRecord[];
+  search: string;
+  language: Language;
+  onSelect: (record: TaipeiBiodiversitySpeciesSurveyPointRecord) => void;
+}) {
+  const t = getTranslation(language);
+  const [year, setYear] = useState('');
+  const [classGroup, setClassGroup] = useState('');
+  const [method, setMethod] = useState('');
+  const [withinTaipei, setWithinTaipei] = useState(false);
+  const [nearZoo, setNearZoo] = useState(false);
+  const years = sortedUnique(records.map((record) => record.surveyYear?.toString()));
+  const classGroups = sortedUnique(records.map((record) => record.speciesClassGroup));
+  const methods = sortedUnique(records.map((record) => record.surveyMethodCategory));
+  const query = search.trim().toLocaleLowerCase();
+  const filtered = records.filter((record) => {
+    const searchable = [record.speciesName, record.speciesClass, record.surveyMethod, record.surveyYear?.toString(), record.resourceName];
+    if (query && !searchable.some((value) => value?.toLocaleLowerCase().includes(query))) return false;
+    if (year && record.surveyYear?.toString() !== year) return false;
+    if (classGroup && record.speciesClassGroup !== classGroup) return false;
+    if (method && record.surveyMethodCategory !== method) return false;
+    if (withinTaipei && !record.isWithinTaipeiBounds) return false;
+    if (nearZoo && !record.isNearZooArea) return false;
+    return true;
+  });
+  const summary = buildTaipeiBiodiversitySpeciesSurveyPointSummary(filtered);
+  const cards = [
+    [t.surveyRecordCount, summary.totalRecords],
+    [t.surveyYearRange, summary.minSurveyYear && summary.maxSurveyYear ? `${summary.minSurveyYear}-${summary.maxSurveyYear}` : t.unknown],
+    [t.latestSurveyYear, summary.latestSurveyYear ?? t.unknown],
+    [t.uniqueSpeciesCount, summary.uniqueSpeciesNameCount],
+    [t.recordsWithinTaipeiBounds, summary.recordsWithinTaipeiBounds],
+    [t.recordsNearTaipeiZooArea, summary.recordsNearZooArea],
+  ];
+  return (
+    <>
+      <header className="section-heading">
+        <h2>{t.taipeiBiodiversitySpeciesSurveyPoints}</h2>
+        <p>{t.biodiversitySubtitle}</p>
+      </header>
+      <section className="filters">
+        <div className="filter-grid compact">
+          <label>{t.surveyYear}<select value={year} onChange={(event) => setYear(event.target.value)}><option value="">{t.all}</option>{years.map((value) => <option key={value}>{value}</option>)}</select></label>
+          <label>{t.speciesClassGroup}<select value={classGroup} onChange={(event) => setClassGroup(event.target.value)}><option value="">{t.all}</option>{classGroups.map((value) => <option key={value} value={value}>{speciesClassGroupLabel(value as BiodiversitySpeciesClassGroup, language)}</option>)}</select></label>
+          <label>{t.surveyMethodCategory}<select value={method} onChange={(event) => setMethod(event.target.value)}><option value="">{t.all}</option>{methods.map((value) => <option key={value} value={value}>{surveyMethodCategoryLabel(value as BiodiversitySurveyMethodCategory, language)}</option>)}</select></label>
+        </div>
+        <div className="toggles">
+          <label><input type="checkbox" checked={withinTaipei} onChange={(event) => setWithinTaipei(event.target.checked)} />{t.withinTaipeiBounds}</label>
+          <label><input type="checkbox" checked={nearZoo} onChange={(event) => setNearZoo(event.target.checked)} />{t.nearTaipeiZooArea}</label>
+        </div>
+      </section>
+      <ResultLine count={filtered.length} language={language} />
+      <p className="notice subtle">{t.biodiversityMapNotice}</p>
+      <section className="summary-cards">{cards.map(([label, value]) => <div key={label}><strong>{value}</strong><span>{label}</span></div>)}</section>
+      <div className="chart-grid">
+        <BarList title={t.speciesClasses} rows={summary.bySpeciesClassGroup.map((row) => ({ label: speciesClassGroupLabel(row.speciesClassGroup, language), count: row.recordCount }))} />
+        <BarList title={t.surveyMethods} rows={summary.bySurveyMethodCategory.map((row) => ({ label: surveyMethodCategoryLabel(row.surveyMethodCategory, language), count: row.recordCount }))} />
+        <BarList title={t.yearlyTrends} rows={summary.bySurveyYear.map((row) => ({ label: String(row.surveyYear), count: row.recordCount }))} />
+        <BarList title={t.mostRecordedSpecies} rows={summary.topSpeciesByRecordCount.map((row) => ({ label: row.speciesName, count: row.recordCount }))} />
+      </div>
+      <p className="notice subtle">{t.biodiversityChartNotice}</p>
+      <div className="table-wrap biodiversity-table">
+        <table>
+          <thead><tr><th>{t.surveyDate}</th><th>{t.speciesClass}</th><th>{t.speciesName}</th><th>{t.observationCount}</th><th>{t.surveyMethod}</th><th>{t.coordinateUncertainty}</th><th>{t.resourceYear}</th></tr></thead>
+          <tbody>{filtered.slice(0, 100).map((record) => (
+            <tr key={record.id} onClick={() => onSelect(record)}>
+              <td>{record.surveyDate}</td><td>{record.speciesClass}</td><td>{record.speciesName}</td><td>{record.observationCount}</td><td>{record.surveyMethod}</td><td>{record.coordinateUncertaintyRaw}</td><td>{record.resourceYear}</td>
+            </tr>
+          ))}</tbody>
+        </table>
+      </div>
+      <p className="notice subtle">{t.biodiversityZooExhibitDistinctionNote}</p>
+      <p className="notice subtle">{t.wildlifeRespectNote}</p>
+    </>
+  );
+}
+
 function MapBounds({ points }: { points: MapPoint[] }) {
   const map = useMap();
   useEffect(() => {
@@ -675,9 +802,22 @@ function clusterPlants(plants: ZooPlantRecord[]) {
   return [...clusters.values()];
 }
 
+function clusterBiodiversity(records: TaipeiBiodiversitySpeciesSurveyPointRecord[]) {
+  const clusters = new Map<string, Array<TaipeiBiodiversitySpeciesSurveyPointRecord & MapPoint>>();
+  for (const record of records.filter(
+    (item): item is TaipeiBiodiversitySpeciesSurveyPointRecord & MapPoint =>
+      item.longitude !== undefined && item.latitude !== undefined && item.isWithinTaipeiBounds,
+  )) {
+    const key = `${record.latitude.toFixed(3)}:${record.longitude.toFixed(3)}`;
+    clusters.set(key, [...(clusters.get(key) ?? []), record]);
+  }
+  return [...clusters.values()];
+}
+
 function GuideMap({
   animals,
   plants,
+  biodiversity,
   areas,
   events,
   language,
@@ -685,20 +825,23 @@ function GuideMap({
 }: {
   animals: ZooAnimal[];
   plants: ZooPlantRecord[];
+  biodiversity: TaipeiBiodiversitySpeciesSurveyPointRecord[];
   areas: ZooExhibitArea[];
   events: ZooEvent[];
   language: Language;
   onSelect: (record: SelectedRecord) => void;
 }) {
   const t = getTranslation(language);
-  const [layers, setLayers] = useState({ animals: true, plants: true, exhibits: true, events: true });
+  const [layers, setLayers] = useState({ animals: true, plants: true, biodiversity: false, exhibits: true, events: true });
   const animalPoints = validPoints(animals);
   const plantPoints = validPoints(plants);
+  const biodiversityPoints = biodiversity.filter((record): record is TaipeiBiodiversitySpeciesSurveyPointRecord & MapPoint => record.longitude !== undefined && record.latitude !== undefined && record.isWithinTaipeiBounds);
   const areaPoints = validPoints(areas);
   const eventPoints = validPoints(events);
   const points = [
     ...(layers.animals ? animalPoints : []),
     ...(layers.plants ? plantPoints : []),
+    ...(layers.biodiversity ? biodiversityPoints : []),
     ...(layers.exhibits ? areaPoints : []),
     ...(layers.events ? eventPoints : []),
   ];
@@ -707,6 +850,7 @@ function GuideMap({
       <div className="layer-toggles">
         <label><input type="checkbox" checked={layers.animals} onChange={(event) => setLayers({ ...layers, animals: event.target.checked })} />{t.animals}</label>
         <label><input type="checkbox" checked={layers.plants} onChange={(event) => setLayers({ ...layers, plants: event.target.checked })} />{t.plantLayer}</label>
+        <label><input type="checkbox" checked={layers.biodiversity} onChange={(event) => setLayers({ ...layers, biodiversity: event.target.checked })} />{t.biodiversitySurveyPointLayer}</label>
         <label><input type="checkbox" checked={layers.exhibits} onChange={(event) => setLayers({ ...layers, exhibits: event.target.checked })} />{t.exhibitLayer}</label>
         <label><input type="checkbox" checked={layers.events} onChange={(event) => setLayers({ ...layers, events: event.target.checked })} />{t.eventLayer}</label>
       </div>
@@ -735,6 +879,17 @@ function GuideMap({
             }
             return <Marker key={first.id} position={[first.latitude, first.longitude]} icon={mapIcon('plant')}><Popup><div className="popup-content"><strong>{first.chineseName}</strong><span>{first.scientificName}</span><span>{first.locationAreas.join('、')}</span><button onClick={() => onSelect(first)}>{t.viewDetails}</button></div></Popup></Marker>;
           })}
+          {layers.biodiversity && clusterBiodiversity(biodiversity).map((cluster) => {
+            const first = cluster[0];
+            if (cluster.length > 1) {
+              return (
+                <CircleMarker key={cluster.map((record) => record.id).join('|')} center={[first.latitude, first.longitude]} radius={9 + Math.min(cluster.length / 8, 18)} pathOptions={{ color: '#375f72', fillColor: '#6fa4aa', fillOpacity: 0.72, weight: 2 }}>
+                  <Popup><div className="popup-content"><strong>{cluster.length} {t.surveyRecordCount}</strong><span>{t.biodiversityPopupNotice}</span>{cluster.slice(0, 8).map((record) => <button key={record.id} onClick={() => onSelect(record)}>{record.speciesName} · {record.surveyDate}</button>)}</div></Popup>
+                </CircleMarker>
+              );
+            }
+            return <Marker key={first.id} position={[first.latitude, first.longitude]} icon={mapIcon('biodiversity')}><Popup><div className="popup-content"><strong>{first.speciesName}</strong><span>{speciesClassGroupLabel(first.speciesClassGroup, language)} · {first.observationCount ?? t.unknown}</span><span>{first.surveyDate} · {first.surveyMethod}</span><span>{first.coordinateUncertaintyRaw}</span><span>{t.biodiversityPopupNotice}</span><button onClick={() => onSelect(first)}>{t.viewDetails}</button></div></Popup></Marker>;
+          })}
           {layers.events && clusterEvents(events).map((cluster) => {
             const first = cluster[0];
             if (cluster.length > 1) {
@@ -749,6 +904,7 @@ function GuideMap({
         </MapContainer>
       </div>
       <p className="notice">{t.coordinateNotice}</p>
+      {layers.biodiversity && <p className="notice subtle">{t.biodiversityMapNotice}</p>}
       <NearbyAnimals animals={animals} language={language} onSelect={onSelect} />
     </section>
   );
@@ -796,6 +952,7 @@ function BarList({ title, rows }: { title: string; rows: Array<{ label: string; 
 function Overview({
   animals,
   plants,
+  biodiversity,
   areas,
   events,
   summary,
@@ -803,6 +960,7 @@ function Overview({
 }: {
   animals: ZooAnimal[];
   plants: ZooPlantRecord[];
+  biodiversity: TaipeiBiodiversitySpeciesSurveyPointRecord[];
   areas: ZooExhibitArea[];
   events: ZooEvent[];
   summary: ZooGuideSummary;
@@ -811,10 +969,14 @@ function Overview({
   const t = getTranslation(language);
   const animalSummary = buildZooAnimalSummary(animals);
   const plantSummary = buildZooPlantSummary(plants);
+  const biodiversitySummary = buildTaipeiBiodiversitySpeciesSurveyPointSummary(biodiversity);
   const cards = [
     [t.totalAnimalRecords, animals.length],
     [t.plantRecordCount, plants.length],
     [t.plantSpeciesCount, plantSummary.species.length],
+    [t.surveyRecordCount, biodiversity.length],
+    [t.uniqueSpeciesCount, biodiversitySummary.uniqueSpeciesNameCount],
+    [t.latestSurveyYear, biodiversitySummary.latestSurveyYear ?? t.unknown],
     [t.plantFamilyCount, summary.plantFamilyCount ?? 0],
     [t.exhibitAreaCount, areas.length],
     [t.exhibitAreasWithCoordinates, areas.filter((area) => area.coordinateStatus === 'valid').length],
@@ -836,6 +998,8 @@ function Overview({
         <BarList title={t.animalsByExhibitArea} rows={animalSummary.byExhibitArea.map((row) => ({ label: row.exhibitArea, count: row.count }))} />
         <BarList title={t.plantsByFamily} rows={plantSummary.byFamily.map((row) => ({ label: row.familyRaw, count: row.uniquePlantCount }))} />
         <BarList title={t.plantsByLocation} rows={plantSummary.byLocationArea.map((row) => ({ label: row.locationArea, count: row.uniquePlantCount }))} />
+        <BarList title={t.speciesClasses} rows={biodiversitySummary.bySpeciesClassGroup.map((row) => ({ label: speciesClassGroupLabel(row.speciesClassGroup, language), count: row.recordCount }))} />
+        <BarList title={t.yearlyTrends} rows={biodiversitySummary.bySurveyYear.map((row) => ({ label: String(row.surveyYear), count: row.recordCount }))} />
         <BarList title={t.eventsByCategory} rows={summary.byEventCategory.map((row) => ({ label: eventCategoryLabel(row.eventCategory, language), count: row.count }))} />
         <BarList title={t.eventsByStatus} rows={summary.byEventStatus.map((row) => ({ label: eventStatusLabel(row.eventStatus, language), count: row.count }))} />
         <BarList title={t.eventsByMonth} rows={summary.byEventMonth.map((row) => ({ label: row.month, count: row.count }))} />
@@ -853,6 +1017,9 @@ function DataNotes({ language }: { language: Language }) {
       <p>{t.exhibitDatasetNote}</p>
       <p>{t.eventDatasetNote}</p>
       <p>{t.plantDatasetNote}</p>
+      <p>{t.biodiversityDataNote}</p>
+      <p>{t.biodiversityInterpretationNote}</p>
+      <p>{t.biodiversityZooExhibitDistinctionNote}</p>
       <p>{t.coordinateNotice}</p>
       <p className="notice">{t.zooMediaLicenseNotice}</p>
       <p className="notice">{t.zooGuideDisclaimer}</p>
@@ -943,6 +1110,30 @@ function DetailPanel({
       </aside>
     );
   }
+  if ('module' in record && record.module === 'taipei_biodiversity_species_survey_points') {
+    return (
+      <aside className="detail-panel" aria-label={record.speciesName}>
+        <button className="icon-button close" onClick={onClose} aria-label="Close"><X size={20} /></button>
+        <p className="eyebrow">{t.biodiversity} · {speciesClassGroupLabel(record.speciesClassGroup, language)}</p>
+        <h2>{record.speciesName || t.unknown}</h2>
+        <p>{t.biodiversityPopupNotice}</p>
+        <dl>
+          <DetailRow label={t.surveyDate} value={record.surveyDate} />
+          <DetailRow label={t.speciesClass} value={record.speciesClass} />
+          <DetailRow label={t.observationCount} value={record.observationCount?.toString()} />
+          <DetailRow label={t.surveyMethod} value={record.surveyMethod} />
+          <DetailRow label={t.coordinateUncertainty} value={record.coordinateUncertaintyRaw} />
+          <DetailRow label={t.resourceYear} value={record.resourceYear?.toString()} />
+          <DetailRow label={t.coordinateSystem} value={record.coordinateSystem} />
+          <DetailRow label={t.distanceToTaipeiZoo} value={record.distanceToTaipeiZooKm !== undefined ? `${record.distanceToTaipeiZooKm} km` : undefined} />
+          <DetailRow label="WGS84" value={record.latitude !== undefined && record.longitude !== undefined ? `${record.latitude}, ${record.longitude}` : undefined} />
+          <DetailRow label={t.source} value={record.source} />
+        </dl>
+        <p className="notice subtle">{t.biodiversityInterpretationNote}</p>
+        <p className="notice subtle">{t.wildlifeRespectNote}</p>
+      </aside>
+    );
+  }
   const animal = record as ZooAnimal;
   const topicUrl = getOfficialTopicPageUrl(animal);
   return (
@@ -971,7 +1162,7 @@ function Footer({ language }: { language: Language }) {
 }
 
 export default function App() {
-  const { animals, plants, exhibitAreas, events, summary } = useZooGuideData();
+  const { animals, plants, biodiversity, exhibitAreas, events, summary } = useZooGuideData();
   const [language, setLanguage] = useLanguage();
   const [activeTab, setActiveTab] = useState<Tab>('animals');
   const [search, setSearch] = useState('');
@@ -991,10 +1182,11 @@ export default function App() {
         {!['overview', 'notes'].includes(activeTab) && <GlobalSearch value={search} onChange={setSearch} language={language} />}
         {activeTab === 'animals' && <AnimalGuide animals={animals} filters={filters} setFilters={setAnimalFilters} language={language} onSelect={setSelected} />}
         {activeTab === 'plants' && <PlantGuide plants={plants} search={search} language={language} onSelect={setSelected} />}
+        {activeTab === 'biodiversity' && <BiodiversityGuide records={biodiversity} search={search} language={language} onSelect={setSelected} />}
         {activeTab === 'exhibits' && <ExhibitGuide areas={exhibitAreas} animals={animals} search={search} language={language} onSelect={setSelected} />}
         {activeTab === 'events' && <EventGuide events={events} search={search} language={language} onSelect={setSelected} />}
-        {activeTab === 'map' && <GuideMap animals={filterAnimals(animals, filters)} plants={plants} areas={exhibitAreas} events={events} language={language} onSelect={setSelected} />}
-        {activeTab === 'overview' && <Overview animals={animals} plants={plants} areas={exhibitAreas} events={events} summary={summary} language={language} />}
+        {activeTab === 'map' && <GuideMap animals={filterAnimals(animals, filters)} plants={plants} biodiversity={biodiversity} areas={exhibitAreas} events={events} language={language} onSelect={setSelected} />}
+        {activeTab === 'overview' && <Overview animals={animals} plants={plants} biodiversity={biodiversity} areas={exhibitAreas} events={events} summary={summary} language={language} />}
         {activeTab === 'notes' && <DataNotes language={language} />}
       </main>
       <Footer language={language} />

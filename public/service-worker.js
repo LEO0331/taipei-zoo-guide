@@ -1,4 +1,4 @@
-const CACHE_NAME = 'taipei-zoo-guide-v3';
+const CACHE_NAME = 'taipei-zoo-guide-v4';
 const basePath = new URL(self.registration.scope).pathname.replace(/\/$/, '');
 const withBase = (path) => `${basePath}${path.startsWith('/') ? path : `/${path}`}` || '/';
 const APP_SHELL = [
@@ -10,6 +10,9 @@ const APP_SHELL = [
   withBase('/data/zoo-plants.json'),
   withBase('/data/zoo-plant-species.json'),
   withBase('/data/zoo-plant-summary.json'),
+  withBase('/data/taipei-biodiversity-species-survey-points.json'),
+  withBase('/data/taipei-biodiversity-species-survey-point-summary.json'),
+  withBase('/data/taipei-biodiversity-species-survey-point-latest.json'),
   withBase('/data/zoo-exhibit-areas.json'),
   withBase('/data/zoo-events.json'),
   withBase('/data/zoo-guide-summary.json'),

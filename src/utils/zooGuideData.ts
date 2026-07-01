@@ -1,6 +1,11 @@
 import type {
+  BiodiversityCoordinateSystem,
+  BiodiversitySpeciesClassGroup,
+  BiodiversitySurveyMethodCategory,
   CoordinateStatus,
   ExhibitAreaCategory,
+  TaipeiBiodiversitySpeciesSurveyPointRecord,
+  TaipeiBiodiversitySpeciesSurveyPointSummary,
   ZooAnimal,
   ZooEvent,
   ZooEventCategory,
@@ -23,6 +28,20 @@ export const TAIPEI_ZOO_GUIDE_BOUNDS = {
 const EXHIBIT_SOURCE = '臺北市立動物園_館區簡介';
 const EVENT_SOURCE = '臺北市立動物園_行事曆';
 const PLANT_SOURCE = '臺北市立動物園_植物資料';
+const BIODIVERSITY_SOURCE = '臺北市生物多樣性';
+const BIODIVERSITY_SOURCE_AGENCY = '臺北市政府產業發展局動物保護處';
+
+export const TAIPEI_BOUNDS = {
+  minLng: 121.43,
+  maxLng: 121.7,
+  minLat: 24.9,
+  maxLat: 25.25,
+};
+
+const TAIPEI_ZOO_REFERENCE = {
+  latitude: 24.9986,
+  longitude: 121.581,
+};
 
 const EXHIBIT_AREA_CATEGORY_MAP: Record<string, ExhibitAreaCategory> = {
   戶外區: 'outdoor',
@@ -50,6 +69,20 @@ function cleanValue(raw: unknown): string | undefined {
   if (raw === null || raw === undefined) return undefined;
   const value = String(raw).trim();
   return value && value.toLocaleLowerCase() !== 'nan' ? value : undefined;
+}
+
+export function cleanText(raw: unknown): string | undefined {
+  if (raw === null || raw === undefined) return undefined;
+  const value = String(raw).replace(/\u3000/g, ' ').trim();
+  if (!value) return undefined;
+  return ['-', '--', 'nan', 'null', '尚無資料'].includes(value.toLocaleLowerCase()) ? undefined : value;
+}
+
+export function parseNumericValue(raw: unknown): { raw?: string; value?: number; warning?: string } {
+  const text = cleanText(raw);
+  if (!text) return {};
+  const value = Number(text.replace(/,/g, '').replace(/[<>≤≦公尺mM\s]/g, ''));
+  return Number.isFinite(value) ? { raw: text, value } : { raw: text, warning: `Invalid number: ${text}` };
 }
 
 function cleanUrl(raw: unknown): string | undefined {
@@ -179,6 +212,10 @@ export function parsePlantLocationAreas(raw: string | undefined): string[] {
 
 function normalizeText(value: string): string {
   return value.toLocaleLowerCase().replace(/[\s（）()_\-|.]/g, '');
+}
+
+function normalizeBiodiversityText(value: string | undefined): string {
+  return (value ?? '').toLocaleLowerCase().replace(/[\s（）()_\-|.,，、/]/g, '');
 }
 
 function normalizeNumber(value?: number): string {
@@ -475,6 +512,287 @@ export function matchEventToAnimals(
   ];
 }
 
+export function classifySpeciesClass(raw: string | undefined): BiodiversitySpeciesClassGroup {
+  const text = raw?.trim() ?? '';
+  if (!text) return 'unknown';
+  if (text.includes('鳥') || text.includes('鳥綱')) return 'bird';
+  if (text.includes('哺乳') || text.includes('哺乳綱')) return 'mammal';
+  if (text.includes('爬蟲') || text.includes('爬行') || text.includes('爬蟲綱')) return 'reptile';
+  if (text.includes('兩棲') || text.includes('兩棲綱')) return 'amphibian';
+  if (text.includes('魚') || text.includes('魚綱')) return 'fish';
+  if (text.includes('昆蟲') || text.includes('昆蟲綱')) return 'insect';
+  if (text.includes('蛛形') || text.includes('蜘蛛')) return 'arachnid';
+  if (text.includes('甲殼')) return 'crustacean';
+  if (text.includes('軟體')) return 'mollusk';
+  if (text.includes('植物') || text.includes('蕨') || text.includes('雙子葉') || text.includes('單子葉') || text.includes('裸子')) return 'plant';
+  if (text.includes('真菌') || text.includes('菌')) return 'fungus';
+  return 'other';
+}
+
+export function classifySurveyMethod(raw: string | undefined): BiodiversitySurveyMethodCategory {
+  const text = raw?.trim() ?? '';
+  if (!text) return 'unknown';
+  if (text.includes('目視') || text.includes('觀察')) return 'visual_observation';
+  if (text.includes('樣線') || text.includes('穿越線')) return 'transect';
+  if (text.includes('定點') || text.includes('點計')) return 'point_count';
+  if (text.includes('陷阱') || text.includes('誘捕') || text.includes('籠')) return 'trap';
+  if (text.includes('網') || text.includes('捕網')) return 'netting';
+  if (text.includes('聲') || text.includes('鳴叫') || text.includes('錄音')) return 'audio';
+  if (text.includes('相機') || text.includes('自動照相') || text.includes('紅外線')) return 'camera';
+  if (text.includes('文獻') || text.includes('紀錄')) return 'literature_or_record';
+  return 'other';
+}
+
+export function parseSurveyDate(raw: unknown): {
+  surveyDateRaw?: string;
+  surveyDate?: string;
+  surveyYear?: number;
+  surveyMonth?: number;
+  surveyMonthKey?: string;
+  warning?: string;
+} {
+  const value = cleanText(raw);
+  if (!value) return {};
+  const roc = value.match(/^(\d{2,3})[/-](\d{1,2})[/-](\d{1,2})$/);
+  const gregorian = value.match(/^(\d{4})(\d{2})(\d{2})$/) ?? value.match(/^(\d{4})[/-](\d{1,2})[/-](\d{1,2})$/);
+  const match = gregorian ?? roc;
+  if (!match) return { surveyDateRaw: value, warning: `Invalid survey date: ${value}` };
+  const year = Number(match[1]) + (roc && !gregorian ? 1911 : 0);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) {
+    return { surveyDateRaw: value, warning: `Invalid survey date: ${value}` };
+  }
+  const surveyDate = `${year.toString().padStart(4, '0')}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+  return { surveyDateRaw: value, surveyDate, surveyYear: year, surveyMonth: month, surveyMonthKey: surveyDate.slice(0, 7) };
+}
+
+function parseSpeciesName(raw: unknown): {
+  speciesNameRaw?: string;
+  speciesName?: string;
+  speciesNameNormalized?: string;
+  speciesScientificNameCandidate?: string;
+  speciesCommonNameCandidate?: string;
+} {
+  const speciesNameRaw = cleanText(raw);
+  if (!speciesNameRaw) return {};
+  const speciesName = speciesNameRaw.replace(/\s+/g, ' ');
+  const latin = speciesName.match(/\b[A-Z][a-z]+ [a-z][a-z-]+\b/)?.[0];
+  const chineseOnly = /^[\p{Script=Han}·・（）()A-Za-z0-9\s-]+$/u.test(speciesName) && !latin;
+  return {
+    speciesNameRaw,
+    speciesName,
+    speciesNameNormalized: normalizeBiodiversityText(speciesName),
+    ...(latin ? { speciesScientificNameCandidate: latin } : {}),
+    ...(chineseOnly ? { speciesCommonNameCandidate: speciesName } : {}),
+  };
+}
+
+function parseSpeciesClass(raw: unknown) {
+  const speciesClassRaw = cleanText(raw);
+  const speciesClass = speciesClassRaw?.replace(/\s+/g, ' ');
+  return {
+    ...(speciesClassRaw ? { speciesClassRaw } : {}),
+    ...(speciesClass ? { speciesClass, speciesClassNormalized: normalizeBiodiversityText(speciesClass) } : {}),
+    speciesClassGroup: classifySpeciesClass(speciesClass),
+  };
+}
+
+function parseSurveyMethod(raw: unknown) {
+  const surveyMethodRaw = cleanText(raw);
+  const surveyMethod = surveyMethodRaw?.replace(/\s+/g, ' ');
+  return {
+    ...(surveyMethodRaw ? { surveyMethodRaw } : {}),
+    ...(surveyMethod ? { surveyMethod, surveyMethodNormalized: normalizeBiodiversityText(surveyMethod) } : {}),
+    surveyMethodCategory: classifySurveyMethod(surveyMethod),
+  };
+}
+
+function observationCountBucket(value: number | undefined): string | undefined {
+  if (value === undefined) return 'unknown';
+  if (value <= 1) return '1';
+  if (value <= 5) return '2-5';
+  if (value <= 10) return '6-10';
+  if (value <= 50) return '11-50';
+  return '51+';
+}
+
+function parseObservationCount(raw: unknown) {
+  const parsed = parseNumericValue(raw);
+  return {
+    ...(parsed.raw ? { observationCountRaw: parsed.raw } : {}),
+    ...(parsed.value !== undefined ? { observationCount: parsed.value } : {}),
+    observationCountBucket: observationCountBucket(parsed.value),
+    ...(parsed.warning ? { warning: parsed.warning } : {}),
+  };
+}
+
+function isWithinTaipeiBounds(longitude?: number, latitude?: number) {
+  return (
+    longitude !== undefined &&
+    latitude !== undefined &&
+    longitude >= TAIPEI_BOUNDS.minLng &&
+    longitude <= TAIPEI_BOUNDS.maxLng &&
+    latitude >= TAIPEI_BOUNDS.minLat &&
+    latitude <= TAIPEI_BOUNDS.maxLat
+  );
+}
+
+export function twd97ToWgs84(x: number, y: number): { longitude: number; latitude: number } {
+  const a = 6378137;
+  const b = 6356752.314245;
+  const lng0 = 121 * Math.PI / 180;
+  const k0 = 0.9999;
+  const dx = 250000;
+  const dy = 0;
+  const e = Math.sqrt(1 - (b * b) / (a * a));
+  const xAdj = x - dx;
+  const yAdj = y - dy;
+  const m = yAdj / k0;
+  const mu = m / (a * (1 - e ** 2 / 4 - (3 * e ** 4) / 64 - (5 * e ** 6) / 256));
+  const e1 = (1 - Math.sqrt(1 - e ** 2)) / (1 + Math.sqrt(1 - e ** 2));
+  const j1 = (3 * e1) / 2 - (27 * e1 ** 3) / 32;
+  const j2 = (21 * e1 ** 2) / 16 - (55 * e1 ** 4) / 32;
+  const j3 = (151 * e1 ** 3) / 96;
+  const j4 = (1097 * e1 ** 4) / 512;
+  const fp = mu + j1 * Math.sin(2 * mu) + j2 * Math.sin(4 * mu) + j3 * Math.sin(6 * mu) + j4 * Math.sin(8 * mu);
+  const e2 = (e * a / b) ** 2;
+  const c1 = e2 * Math.cos(fp) ** 2;
+  const t1 = Math.tan(fp) ** 2;
+  const r1 = (a * (1 - e ** 2)) / (1 - e ** 2 * Math.sin(fp) ** 2) ** 1.5;
+  const n1 = a / Math.sqrt(1 - e ** 2 * Math.sin(fp) ** 2);
+  const d = xAdj / (n1 * k0);
+  const q1 = (n1 * Math.tan(fp)) / r1;
+  const q2 = d ** 2 / 2;
+  const q3 = ((5 + 3 * t1 + 10 * c1 - 4 * c1 ** 2 - 9 * e2) * d ** 4) / 24;
+  const q4 = ((61 + 90 * t1 + 298 * c1 + 45 * t1 ** 2 - 252 * e2 - 3 * c1 ** 2) * d ** 6) / 720;
+  const latitude = (fp - q1 * (q2 - q3 + q4)) * 180 / Math.PI;
+  const q5 = d;
+  const q6 = ((1 + 2 * t1 + c1) * d ** 3) / 6;
+  const q7 = ((5 - 2 * c1 + 28 * t1 - 3 * c1 ** 2 + 8 * e2 + 24 * t1 ** 2) * d ** 5) / 120;
+  const longitude = (lng0 + (q5 - q6 + q7) / Math.cos(fp)) * 180 / Math.PI;
+  return { longitude, latitude };
+}
+
+export function parseBiodiversityCoordinates(args: { xRaw: unknown; yRaw: unknown }): {
+  coordinateXRaw?: string;
+  coordinateYRaw?: string;
+  coordinateSystem: BiodiversityCoordinateSystem;
+  longitude?: number;
+  latitude?: number;
+  twd97X?: number;
+  twd97Y?: number;
+  isWithinTaipeiBounds: boolean;
+  warning?: string;
+} {
+  const x = parseNumericValue(args.xRaw);
+  const y = parseNumericValue(args.yRaw);
+  const base = {
+    ...(x.raw ? { coordinateXRaw: x.raw } : {}),
+    ...(y.raw ? { coordinateYRaw: y.raw } : {}),
+  };
+  if (x.value === undefined || y.value === undefined) {
+    return { ...base, coordinateSystem: 'unknown', isWithinTaipeiBounds: false, warning: x.warning ?? y.warning };
+  }
+  if (x.value >= 121 && x.value <= 122 && y.value >= 24 && y.value <= 26) {
+    return { ...base, coordinateSystem: 'wgs84_lonlat', longitude: x.value, latitude: y.value, isWithinTaipeiBounds: isWithinTaipeiBounds(x.value, y.value) };
+  }
+  if (x.value >= 250000 && x.value <= 350000 && y.value >= 2700000 && y.value <= 2800000) {
+    const converted = twd97ToWgs84(x.value, y.value);
+    return {
+      ...base,
+      coordinateSystem: 'twd97_tm2',
+      twd97X: x.value,
+      twd97Y: y.value,
+      ...converted,
+      isWithinTaipeiBounds: isWithinTaipeiBounds(converted.longitude, converted.latitude),
+    };
+  }
+  return { ...base, coordinateSystem: 'unknown', isWithinTaipeiBounds: false, warning: `Unknown coordinate system: ${x.raw},${y.raw}` };
+}
+
+export function deriveZooProximity(args: { longitude?: number; latitude?: number }): {
+  distanceToTaipeiZooKm?: number;
+  isNearZooArea?: boolean;
+} {
+  if (args.longitude === undefined || args.latitude === undefined) return {};
+  const distanceToTaipeiZooKm = calculateDistanceKm(args.latitude, args.longitude, TAIPEI_ZOO_REFERENCE.latitude, TAIPEI_ZOO_REFERENCE.longitude);
+  return { distanceToTaipeiZooKm, isNearZooArea: distanceToTaipeiZooKm <= 2 };
+}
+
+function calculateDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const toRad = (degree: number) => (degree * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return Math.round(6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)) * 100) / 100;
+}
+
+function coordinateUncertainty(raw: unknown) {
+  const parsed = parseNumericValue(raw);
+  return {
+    ...(parsed.raw ? { coordinateUncertaintyRaw: parsed.raw } : {}),
+    ...(parsed.value !== undefined ? { coordinateUncertainty: parsed.value, coordinateUncertaintyMeters: parsed.value } : {}),
+    hasCoordinateUncertainty: parsed.value !== undefined,
+  };
+}
+
+function sourceHash(parts: Array<string | number | undefined>) {
+  let hash = 0;
+  const text = parts.map((part) => String(part ?? '')).join('|');
+  for (let index = 0; index < text.length; index += 1) hash = (hash * 31 + text.charCodeAt(index)) >>> 0;
+  return hash.toString(36);
+}
+
+function valueByHeader(row: Record<string, unknown>, contains: string) {
+  const key = Object.keys(row).find((header) => header.replace(/[()（）\s]/g, '').includes(contains));
+  return key ? row[key] : undefined;
+}
+
+export function normalizeBiodiversitySurveyPointRow(
+  row: Record<string, unknown>,
+  context: { rowIndex: number; resourceName?: string; resourceYear?: number; sourceFileName?: string },
+): TaipeiBiodiversitySpeciesSurveyPointRecord {
+  const coordinates = parseBiodiversityCoordinates({ xRaw: valueByHeader(row, '坐標x'), yRaw: valueByHeader(row, '坐標y') });
+  const surveyDate = parseSurveyDate(valueByHeader(row, '調查日期'));
+  const speciesClass = parseSpeciesClass(valueByHeader(row, '物種類別'));
+  const speciesName = parseSpeciesName(valueByHeader(row, '物種名稱'));
+  const count = parseObservationCount(valueByHeader(row, '數量'));
+  const method = parseSurveyMethod(valueByHeader(row, '調查法'));
+  const uncertainty = coordinateUncertainty(valueByHeader(row, '不準度'));
+  const proximity = deriveZooProximity({ longitude: coordinates.longitude, latitude: coordinates.latitude });
+  const sourceRecordHash = sourceHash([
+    context.resourceName,
+    surveyDate.surveyDate ?? surveyDate.surveyDateRaw,
+    speciesName.speciesNameNormalized ?? speciesName.speciesNameRaw,
+    coordinates.longitude?.toFixed(6) ?? coordinates.coordinateXRaw,
+    coordinates.latitude?.toFixed(6) ?? coordinates.coordinateYRaw,
+    method.surveyMethodNormalized ?? method.surveyMethodRaw,
+    context.rowIndex,
+  ]);
+  return {
+    id: `biodiversity-${sourceRecordHash}`,
+    module: 'taipei_biodiversity_species_survey_points',
+    ...(context.resourceName ? { resourceName: context.resourceName } : {}),
+    ...(context.resourceYear ? { resourceYear: context.resourceYear } : {}),
+    ...(context.sourceFileName ? { sourceFileName: context.sourceFileName } : {}),
+    ...coordinates,
+    ...proximity,
+    ...surveyDate,
+    ...speciesClass,
+    ...speciesName,
+    ...count,
+    ...method,
+    ...uncertainty,
+    sourceRecordHash,
+    source: BIODIVERSITY_SOURCE,
+    sourceAgency: BIODIVERSITY_SOURCE_AGENCY,
+  };
+}
+
 function countBy<T extends string>(values: T[]): Array<[T, number]> {
   const counts = new Map<T, number>();
   for (const value of values) counts.set(value, (counts.get(value) ?? 0) + 1);
@@ -561,14 +879,88 @@ export function buildZooPlantSummary(plants: ZooPlantRecord[]): ZooPlantSummary 
   };
 }
 
+function sumObservation(records: TaipeiBiodiversitySpeciesSurveyPointRecord[]) {
+  const values = records.map((record) => record.observationCount).filter((value): value is number => value !== undefined);
+  return values.length ? values.reduce((sum, value) => sum + value, 0) : undefined;
+}
+
+export function buildTaipeiBiodiversitySpeciesSurveyPointSummary(
+  records: TaipeiBiodiversitySpeciesSurveyPointRecord[],
+): TaipeiBiodiversitySpeciesSurveyPointSummary {
+  const dates = records.map((record) => record.surveyDate).filter((date): date is string => Boolean(date)).sort();
+  const years = records.map((record) => record.surveyYear).filter((year): year is number => year !== undefined).sort((a, b) => a - b);
+  const byYear = plantRowsBy(records as unknown as ZooPlantRecord[], (record) => {
+    const surveyRecord = record as unknown as TaipeiBiodiversitySpeciesSurveyPointRecord;
+    return surveyRecord.surveyYear ? [String(surveyRecord.surveyYear)] : [];
+  }) as unknown as Array<[string, TaipeiBiodiversitySpeciesSurveyPointRecord[]]>;
+  const byClass = plantRowsBy(records as unknown as ZooPlantRecord[], (record) => [(record as unknown as TaipeiBiodiversitySpeciesSurveyPointRecord).speciesClassGroup]) as unknown as Array<[BiodiversitySpeciesClassGroup, TaipeiBiodiversitySpeciesSurveyPointRecord[]]>;
+  const byMethod = plantRowsBy(records as unknown as ZooPlantRecord[], (record) => [(record as unknown as TaipeiBiodiversitySpeciesSurveyPointRecord).surveyMethodCategory]) as unknown as Array<[BiodiversitySurveyMethodCategory, TaipeiBiodiversitySpeciesSurveyPointRecord[]]>;
+  const bySpecies = plantRowsBy(records as unknown as ZooPlantRecord[], (record) => {
+    const surveyRecord = record as unknown as TaipeiBiodiversitySpeciesSurveyPointRecord;
+    return surveyRecord.speciesName ? [surveyRecord.speciesName] : [];
+  }) as unknown as Array<[string, TaipeiBiodiversitySpeciesSurveyPointRecord[]]>;
+  const speciesRows = bySpecies.map(([speciesName, rows]) => ({
+    speciesName,
+    speciesClassGroup: rows[0].speciesClassGroup,
+    recordCount: rows.length,
+    ...(sumObservation(rows) !== undefined ? { totalObservationCount: sumObservation(rows) } : {}),
+  }));
+  return {
+    totalRecords: records.length,
+    ...(dates[0] ? { minSurveyDate: dates[0], maxSurveyDate: dates.at(-1) } : {}),
+    ...(years[0] ? { minSurveyYear: years[0], maxSurveyYear: years.at(-1), latestSurveyYear: years.at(-1) } : {}),
+    uniqueSpeciesNameCount: new Set(records.map((record) => record.speciesName).filter(Boolean)).size,
+    speciesClassCount: new Set(records.map((record) => record.speciesClass).filter(Boolean)).size,
+    surveyMethodCount: new Set(records.map((record) => record.surveyMethod).filter(Boolean)).size,
+    recordsWithCoordinates: records.filter((record) => record.longitude !== undefined && record.latitude !== undefined).length,
+    recordsWithinTaipeiBounds: records.filter((record) => record.isWithinTaipeiBounds).length,
+    recordsOutsideTaipeiBounds: records.filter((record) => record.longitude !== undefined && record.latitude !== undefined && !record.isWithinTaipeiBounds).length,
+    recordsNearZooArea: records.filter((record) => record.isNearZooArea).length,
+    recordsWithObservationCount: records.filter((record) => record.observationCount !== undefined).length,
+    ...(sumObservation(records) !== undefined ? { totalObservationCount: sumObservation(records) } : {}),
+    recordsWithCoordinateUncertainty: records.filter((record) => record.hasCoordinateUncertainty).length,
+    bySurveyYear: byYear.map(([surveyYear, rows]) => ({
+      surveyYear: Number(surveyYear),
+      recordCount: rows.length,
+      uniqueSpeciesNameCount: new Set(rows.map((row) => row.speciesName).filter(Boolean)).size,
+      ...(sumObservation(rows) !== undefined ? { totalObservationCount: sumObservation(rows) } : {}),
+    })).sort((a, b) => a.surveyYear - b.surveyYear),
+    bySpeciesClassGroup: byClass.map(([speciesClassGroup, rows]) => ({
+      speciesClassGroup,
+      recordCount: rows.length,
+      uniqueSpeciesNameCount: new Set(rows.map((row) => row.speciesName).filter(Boolean)).size,
+      ...(sumObservation(rows) !== undefined ? { totalObservationCount: sumObservation(rows) } : {}),
+    })).sort((a, b) => a.speciesClassGroup.localeCompare(b.speciesClassGroup)),
+    bySurveyMethodCategory: byMethod.map(([surveyMethodCategory, rows]) => ({
+      surveyMethodCategory,
+      recordCount: rows.length,
+      uniqueSpeciesNameCount: new Set(rows.map((row) => row.speciesName).filter(Boolean)).size,
+    })),
+    topSpeciesByRecordCount: [...speciesRows].sort((a, b) => b.recordCount - a.recordCount || a.speciesName.localeCompare(b.speciesName, 'zh-Hant')).slice(0, 20),
+    topSpeciesByObservationCount: [...speciesRows].sort((a, b) => (b.totalObservationCount ?? 0) - (a.totalObservationCount ?? 0) || a.speciesName.localeCompare(b.speciesName, 'zh-Hant')).slice(0, 20),
+    dataQuality: {
+      missingCoordinateCount: records.filter((record) => !record.coordinateXRaw || !record.coordinateYRaw).length,
+      invalidCoordinateCount: records.filter((record) => record.coordinateXRaw && record.coordinateYRaw && record.coordinateSystem === 'unknown').length,
+      missingSurveyDateCount: records.filter((record) => !record.surveyDateRaw).length,
+      invalidSurveyDateCount: records.filter((record) => record.surveyDateRaw && !record.surveyDate).length,
+      missingSpeciesNameCount: records.filter((record) => !record.speciesName).length,
+      missingSpeciesClassCount: records.filter((record) => !record.speciesClass).length,
+      invalidObservationCountCount: records.filter((record) => record.observationCountRaw && record.observationCount === undefined).length,
+      unknownCoordinateSystemCount: records.filter((record) => record.coordinateSystem === 'unknown').length,
+    },
+  };
+}
+
 export function buildZooGuideSummary(
   animals: ZooAnimal[],
   exhibitAreas: ZooExhibitArea[],
   events: ZooEvent[],
   plants: ZooPlantRecord[] = [],
+  biodiversityRecords: TaipeiBiodiversitySpeciesSurveyPointRecord[] = [],
 ): ZooGuideSummary {
   const dates = events.flatMap((event) => [event.startDate, event.endDate]).filter((date): date is string => Boolean(date));
   const plantSummary = buildZooPlantSummary(plants);
+  const biodiversitySummary = buildTaipeiBiodiversitySpeciesSurveyPointSummary(biodiversityRecords);
   return {
     animalCount: animals.length,
     plantRecordCount: plants.length,
@@ -577,6 +969,10 @@ export function buildZooGuideSummary(
     plantFamilyCount: plantSummary.familyCount,
     plantGenusCount: plantSummary.genusCount,
     plantLocationAreaCount: plantSummary.locationAreaCount,
+    biodiversitySurveyRecordCount: biodiversityRecords.length,
+    biodiversityUniqueSpeciesCount: biodiversitySummary.uniqueSpeciesNameCount,
+    biodiversityLatestSurveyYear: biodiversitySummary.latestSurveyYear,
+    biodiversityRecordsNearZooArea: biodiversitySummary.recordsNearZooArea,
     exhibitAreaCount: exhibitAreas.length,
     exhibitAreaCategoryCount: new Set(exhibitAreas.map((area) => area.areaCategory)).size,
     eventCount: events.length,

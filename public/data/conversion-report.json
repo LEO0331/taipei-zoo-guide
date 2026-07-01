@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-25T01:27:08.634Z",
+  "generatedAt": "2026-07-01T07:11:26.201Z",
   "sourceRows": 313,
   "generatedAnimals": 313,
   "coordinateStatus": {
@@ -88,6 +88,232 @@
     "genusCount": 92,
     "locationAreaCount": 19
   },
+  "taipeiBiodiversitySpeciesSurveyPoints": {
+    "officialDataset": "臺北市生物多樣性",
+    "officialSourceAgency": "產業局動保處",
+    "sources": [
+      {
+        "file": "2017-2017生物多樣性指標調查物種點位資料.csv",
+        "fileSize": 876335,
+        "encoding": "big5",
+        "rows": 9483,
+        "resourceName": "2017生物多樣性指標調查物種點位資料",
+        "resourceYear": 2017
+      },
+      {
+        "file": "2018-2018生物多樣性指標調查物種點位資料.csv",
+        "fileSize": 913018,
+        "encoding": "big5",
+        "rows": 6232,
+        "resourceName": "2018生物多樣性指標調查物種點位資料",
+        "resourceYear": 2018
+      },
+      {
+        "file": "2019-2019生物多樣性指標調查物種點位資料.csv",
+        "fileSize": 1674583,
+        "encoding": "big5",
+        "rows": 10385,
+        "resourceName": "2019生物多樣性指標調查物種點位資料",
+        "resourceYear": 2019
+      },
+      {
+        "file": "2020-2020生物多樣性指標調查物種點位資料.csv",
+        "fileSize": 969677,
+        "encoding": "big5",
+        "rows": 6733,
+        "resourceName": "2020生物多樣性指標調查物種點位資料",
+        "resourceYear": 2020
+      },
+      {
+        "file": "2021-2021生物多樣性指標調查物種點位資料.csv",
+        "fileSize": 1754403,
+        "encoding": "utf-8-sig",
+        "rows": 10094,
+        "resourceName": "2021生物多樣性指標調查物種點位資料",
+        "resourceYear": 2021
+      },
+      {
+        "file": "2022-2022生物多樣性指標調查物種點位資料.csv",
+        "fileSize": 1831065,
+        "encoding": "big5",
+        "rows": 12288,
+        "resourceName": "2022生物多樣性指標調查物種點位資料",
+        "resourceYear": 2022
+      },
+      {
+        "file": "2023-2023生物多樣性指標調查物種點位資料.csv",
+        "fileSize": 1065854,
+        "encoding": "big5",
+        "rows": 8240,
+        "resourceName": "2023生物多樣性指標調查物種點位資料",
+        "resourceYear": 2023
+      },
+      {
+        "file": "2024-2024生物多樣性指標調查物種點位資料.csv",
+        "fileSize": 828008,
+        "encoding": "utf-8-sig",
+        "rows": 8831,
+        "resourceName": "2024生物多樣性指標調查物種點位資料",
+        "resourceYear": 2024
+      }
+    ],
+    "generatedRecords": 72286,
+    "coordinateSystems": {
+      "wgs84_lonlat": 70067,
+      "twd97_tm2": 0,
+      "unknown": 2219
+    },
+    "withinTaipeiBounds": 70067,
+    "nearTaipeiZooArea": 833,
+    "warnings": [
+      {
+        "id": "biodiversity-1wtimjw",
+        "sourceFileName": "2020-2020生物多樣性指標調查物種點位資料.csv",
+        "coordinateSystem": "unknown",
+        "surveyDateRaw": "25.021947",
+        "observationCountRaw": "Gracupica nigricollis"
+      },
+      {
+        "id": "biodiversity-1wtimjx",
+        "sourceFileName": "2020-2020生物多樣性指標調查物種點位資料.csv",
+        "coordinateSystem": "unknown",
+        "surveyDateRaw": "25.021947",
+        "observationCountRaw": "Dendrocitta formosae"
+      },
+      {
+        "id": "biodiversity-1wtimjy",
+        "sourceFileName": "2020-2020生物多樣性指標調查物種點位資料.csv",
+        "coordinateSystem": "unknown",
+        "surveyDateRaw": "25.021947",
+        "observationCountRaw": "Ardea cinerea"
+      },
+      {
+        "id": "biodiversity-1wtimjz",
+        "sourceFileName": "2020-2020生物多樣性指標調查物種點位資料.csv",
+        "coordinateSystem": "unknown",
+        "surveyDateRaw": "25.021947",
+        "observationCountRaw": "Actitis hypoleucos"
+      },
+      {
+        "id": "biodiversity-1wtimk0",
+        "sourceFileName": "2020-2020生物多樣性指標調查物種點位資料.csv",
+        "coordinateSystem": "unknown",
+        "surveyDateRaw": "25.021947",
+        "observationCountRaw": "Threskiornis aethiopicus"
+      },
+      {
+        "id": "biodiversity-1wtimk1",
+        "sourceFileName": "2020-2020生物多樣性指標調查物種點位資料.csv",
+        "coordinateSystem": "unknown",
+        "surveyDateRaw": "25.021947",
+        "observationCountRaw": "Ardea cinerea"
+      },
+      {
+        "id": "biodiversity-1wtimk2",
+        "sourceFileName": "2020-2020生物多樣性指標調查物種點位資料.csv",
+        "coordinateSystem": "unknown",
+        "surveyDateRaw": "25.021947",
+        "observationCountRaw": "Streptopelia chinensis"
+      },
+      {
+        "id": "biodiversity-1wtimk3",
+        "sourceFileName": "2020-2020生物多樣性指標調查物種點位資料.csv",
+        "coordinateSystem": "unknown",
+        "surveyDateRaw": "25.021947",
+        "observationCountRaw": "Milvus migrans"
+      },
+      {
+        "id": "biodiversity-1wtimk4",
+        "sourceFileName": "2020-2020生物多樣性指標調查物種點位資料.csv",
+        "coordinateSystem": "unknown",
+        "surveyDateRaw": "25.021947",
+        "observationCountRaw": "Prinia inornata"
+      },
+      {
+        "id": "biodiversity-1wtimkq",
+        "sourceFileName": "2020-2020生物多樣性指標調查物種點位資料.csv",
+        "coordinateSystem": "unknown",
+        "surveyDateRaw": "25.021947",
+        "observationCountRaw": "Amaurornis phoenicurus"
+      },
+      {
+        "id": "biodiversity-1wtimkr",
+        "sourceFileName": "2020-2020生物多樣性指標調查物種點位資料.csv",
+        "coordinateSystem": "unknown",
+        "surveyDateRaw": "25.021947",
+        "observationCountRaw": "Emberiza spodocephala"
+      },
+      {
+        "id": "biodiversity-1wtimks",
+        "sourceFileName": "2020-2020生物多樣性指標調查物種點位資料.csv",
+        "coordinateSystem": "unknown",
+        "surveyDateRaw": "25.021947",
+        "observationCountRaw": "Gracupica nigricollis"
+      },
+      {
+        "id": "biodiversity-1wtimkt",
+        "sourceFileName": "2020-2020生物多樣性指標調查物種點位資料.csv",
+        "coordinateSystem": "unknown",
+        "surveyDateRaw": "25.021947",
+        "observationCountRaw": "Streptopelia chinensis"
+      },
+      {
+        "id": "biodiversity-1wtimku",
+        "sourceFileName": "2020-2020生物多樣性指標調查物種點位資料.csv",
+        "coordinateSystem": "unknown",
+        "surveyDateRaw": "25.021947",
+        "observationCountRaw": "Passer montanus"
+      },
+      {
+        "id": "biodiversity-1wtimkv",
+        "sourceFileName": "2020-2020生物多樣性指標調查物種點位資料.csv",
+        "coordinateSystem": "unknown",
+        "surveyDateRaw": "25.021947",
+        "observationCountRaw": "Acridotheres tristis"
+      },
+      {
+        "id": "biodiversity-1wtimkw",
+        "sourceFileName": "2020-2020生物多樣性指標調查物種點位資料.csv",
+        "coordinateSystem": "unknown",
+        "surveyDateRaw": "25.021947",
+        "observationCountRaw": "Acridotheres javanicus"
+      },
+      {
+        "id": "biodiversity-1wtimkx",
+        "sourceFileName": "2020-2020生物多樣性指標調查物種點位資料.csv",
+        "coordinateSystem": "unknown",
+        "surveyDateRaw": "25.021947",
+        "observationCountRaw": "Columba livia"
+      },
+      {
+        "id": "biodiversity-1wtimky",
+        "sourceFileName": "2020-2020生物多樣性指標調查物種點位資料.csv",
+        "coordinateSystem": "unknown",
+        "surveyDateRaw": "25.021947",
+        "observationCountRaw": "Anas penelope"
+      },
+      {
+        "id": "biodiversity-1wtimkz",
+        "sourceFileName": "2020-2020生物多樣性指標調查物種點位資料.csv",
+        "coordinateSystem": "unknown",
+        "surveyDateRaw": "25.021947",
+        "observationCountRaw": "Anas zonorhyncha"
+      },
+      {
+        "id": "biodiversity-1wtimll",
+        "sourceFileName": "2020-2020生物多樣性指標調查物種點位資料.csv",
+        "coordinateSystem": "unknown",
+        "surveyDateRaw": "25.021947",
+        "observationCountRaw": "Anas crecca"
+      }
+    ]
+  },
+  "taipeiBiodiversitySpeciesSurveyPointSummary": {
+    "totalRecords": 72286,
+    "latestSurveyYear": 2024,
+    "uniqueSpeciesNameCount": 2318,
+    "recordsNearTaipeiZooArea": 833
+  },
   "guideSummary": {
     "animalCount": 313,
     "plantRecordCount": 276,
@@ -96,6 +322,10 @@
     "plantFamilyCount": 77,
     "plantGenusCount": 92,
     "plantLocationAreaCount": 19,
+    "biodiversitySurveyRecordCount": 72286,
+    "biodiversityUniqueSpeciesCount": 2318,
+    "biodiversityLatestSurveyYear": 2024,
+    "biodiversityRecordsNearZooArea": 833,
     "exhibitAreaCount": 17,
     "exhibitAreaCategoryCount": 3,
     "eventCount": 116,

@@ -300,6 +300,10 @@ input[type="date"] {
   background: #477a36;
 }
 
+.guide-marker.biodiversity {
+  background: #375f72;
+}
+
 .guide-marker.paused {
   filter: grayscale(0.8);
   opacity: 0.75;

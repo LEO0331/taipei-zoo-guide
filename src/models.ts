@@ -1,4 +1,4 @@
-export type ZooGuideModule = 'animals' | 'plants' | 'exhibit_areas' | 'events';
+export type ZooGuideModule = 'animals' | 'plants' | 'exhibit_areas' | 'events' | 'taipei_biodiversity_species_survey_points';
 
 export type CoordinateStatus = 'valid' | 'missing' | 'outlier' | 'unparsed';
 
@@ -14,6 +14,35 @@ export type ZooEventCategory =
   | 'paused_or_cancelled'
   | 'other'
   | 'unknown';
+
+export type BiodiversitySpeciesClassGroup =
+  | 'bird'
+  | 'mammal'
+  | 'reptile'
+  | 'amphibian'
+  | 'fish'
+  | 'insect'
+  | 'arachnid'
+  | 'crustacean'
+  | 'mollusk'
+  | 'plant'
+  | 'fungus'
+  | 'other'
+  | 'unknown';
+
+export type BiodiversitySurveyMethodCategory =
+  | 'visual_observation'
+  | 'transect'
+  | 'point_count'
+  | 'trap'
+  | 'netting'
+  | 'audio'
+  | 'camera'
+  | 'literature_or_record'
+  | 'other'
+  | 'unknown';
+
+export type BiodiversityCoordinateSystem = 'wgs84_lonlat' | 'twd97_tm2' | 'unknown';
 
 export type ZooMediaItem = {
   description?: string;
@@ -225,6 +254,105 @@ export type ZooPlantSummary = {
   species: ZooPlantSpeciesSummary[];
 };
 
+export type TaipeiBiodiversitySpeciesSurveyPointRecord = {
+  id: string;
+  module: 'taipei_biodiversity_species_survey_points';
+  resourceName?: string;
+  resourceYear?: number;
+  sourceFileName?: string;
+  coordinateXRaw?: string;
+  coordinateYRaw?: string;
+  coordinateSystem: BiodiversityCoordinateSystem;
+  longitude?: number;
+  latitude?: number;
+  twd97X?: number;
+  twd97Y?: number;
+  isWithinTaipeiBounds: boolean;
+  isNearZooArea?: boolean;
+  distanceToTaipeiZooKm?: number;
+  surveyDateRaw?: string;
+  surveyDate?: string;
+  surveyYear?: number;
+  surveyMonth?: number;
+  surveyMonthKey?: string;
+  speciesClassRaw?: string;
+  speciesClass?: string;
+  speciesClassNormalized?: string;
+  speciesClassGroup: BiodiversitySpeciesClassGroup;
+  speciesNameRaw?: string;
+  speciesName?: string;
+  speciesNameNormalized?: string;
+  speciesScientificNameCandidate?: string;
+  speciesCommonNameCandidate?: string;
+  observationCountRaw?: string;
+  observationCount?: number;
+  observationCountBucket?: string;
+  surveyMethodRaw?: string;
+  surveyMethod?: string;
+  surveyMethodNormalized?: string;
+  surveyMethodCategory: BiodiversitySurveyMethodCategory;
+  coordinateUncertaintyRaw?: string;
+  coordinateUncertainty?: number;
+  coordinateUncertaintyMeters?: number;
+  hasCoordinateUncertainty: boolean;
+  sourceRecordHash: string;
+  source: string;
+  sourceAgency: string;
+};
+
+export type TaipeiBiodiversitySpeciesSurveyPointSummary = {
+  totalRecords: number;
+  minSurveyDate?: string;
+  maxSurveyDate?: string;
+  minSurveyYear?: number;
+  maxSurveyYear?: number;
+  latestSurveyYear?: number;
+  uniqueSpeciesNameCount: number;
+  speciesClassCount: number;
+  surveyMethodCount: number;
+  recordsWithCoordinates: number;
+  recordsWithinTaipeiBounds: number;
+  recordsOutsideTaipeiBounds: number;
+  recordsNearZooArea: number;
+  recordsWithObservationCount: number;
+  totalObservationCount?: number;
+  recordsWithCoordinateUncertainty: number;
+  bySurveyYear: Array<{ surveyYear: number; recordCount: number; uniqueSpeciesNameCount: number; totalObservationCount?: number }>;
+  bySpeciesClassGroup: Array<{
+    speciesClassGroup: BiodiversitySpeciesClassGroup;
+    recordCount: number;
+    uniqueSpeciesNameCount: number;
+    totalObservationCount?: number;
+  }>;
+  bySurveyMethodCategory: Array<{
+    surveyMethodCategory: BiodiversitySurveyMethodCategory;
+    recordCount: number;
+    uniqueSpeciesNameCount: number;
+  }>;
+  topSpeciesByRecordCount: Array<{
+    speciesName: string;
+    speciesClassGroup: BiodiversitySpeciesClassGroup;
+    recordCount: number;
+    totalObservationCount?: number;
+  }>;
+  topSpeciesByObservationCount: Array<{
+    speciesName: string;
+    speciesClassGroup: BiodiversitySpeciesClassGroup;
+    recordCount: number;
+    totalObservationCount?: number;
+  }>;
+  dataQuality: {
+    missingCoordinateCount: number;
+    invalidCoordinateCount: number;
+    missingSurveyDateCount: number;
+    invalidSurveyDateCount: number;
+    missingSpeciesNameCount: number;
+    missingSpeciesClassCount: number;
+    invalidObservationCountCount: number;
+    unknownCoordinateSystemCount: number;
+  };
+};
+
 export type ZooGuideSummary = {
   animalCount?: number;
   plantRecordCount?: number;
@@ -233,6 +361,10 @@ export type ZooGuideSummary = {
   plantFamilyCount?: number;
   plantGenusCount?: number;
   plantLocationAreaCount?: number;
+  biodiversitySurveyRecordCount?: number;
+  biodiversityUniqueSpeciesCount?: number;
+  biodiversityLatestSurveyYear?: number;
+  biodiversityRecordsNearZooArea?: number;
   exhibitAreaCount: number;
   exhibitAreaCategoryCount: number;
   eventCount: number;

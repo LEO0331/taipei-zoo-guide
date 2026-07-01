@@ -1,0 +1,81 @@
+{
+  "datasetPage": "https://data.taipei/dataset/detail?id=084c5d95-7e9f-49ad-8ab9-d741a9564189",
+  "sourceAgencyOfficial": "產業局動保處",
+  "downloadedAt": "2026-07-01T07:02:22.933Z",
+  "resources": [
+    {
+      "resourceName": "2024生物多樣性指標調查物種點位資料",
+      "resourceYear": 2024,
+      "rid": "8c475d5d-e3b5-42cd-8a4c-4acbf416a5bc",
+      "url": "https://data.taipei/api/dataset/084c5d95-7e9f-49ad-8ab9-d741a9564189/resource/8c475d5d-e3b5-42cd-8a4c-4acbf416a5bc/download",
+      "file": "2024-2024生物多樣性指標調查物種點位資料.csv",
+      "fileSize": 828008,
+      "declaredEncoding": "UTF-8"
+    },
+    {
+      "resourceName": "2023生物多樣性指標調查物種點位資料",
+      "resourceYear": 2023,
+      "rid": "7fa117a7-a1d1-4835-919d-f2a2909cd73a",
+      "url": "https://data.taipei/api/dataset/084c5d95-7e9f-49ad-8ab9-d741a9564189/resource/7fa117a7-a1d1-4835-919d-f2a2909cd73a/download",
+      "file": "2023-2023生物多樣性指標調查物種點位資料.csv",
+      "fileSize": 1065854,
+      "declaredEncoding": "Big5"
+    },
+    {
+      "resourceName": "2022生物多樣性指標調查物種點位資料",
+      "resourceYear": 2022,
+      "rid": "a7139605-4697-49eb-9818-bc1988b8d907",
+      "url": "https://data.taipei/api/dataset/084c5d95-7e9f-49ad-8ab9-d741a9564189/resource/a7139605-4697-49eb-9818-bc1988b8d907/download",
+      "file": "2022-2022生物多樣性指標調查物種點位資料.csv",
+      "fileSize": 1831065,
+      "declaredEncoding": "Big5"
+    },
+    {
+      "resourceName": "2021生物多樣性指標調查物種點位資料",
+      "resourceYear": 2021,
+      "rid": "8391b3fd-d344-4c87-aff9-19824ccef089",
+      "url": "https://data.taipei/api/dataset/084c5d95-7e9f-49ad-8ab9-d741a9564189/resource/8391b3fd-d344-4c87-aff9-19824ccef089/download",
+      "file": "2021-2021生物多樣性指標調查物種點位資料.csv",
+      "fileSize": 1754403,
+      "declaredEncoding": "UTF-8"
+    },
+    {
+      "resourceName": "2020生物多樣性指標調查物種點位資料",
+      "resourceYear": 2020,
+      "rid": "186aa95e-8d95-49f9-a024-f7f3ec5e70a6",
+      "url": "https://data.taipei/api/dataset/084c5d95-7e9f-49ad-8ab9-d741a9564189/resource/186aa95e-8d95-49f9-a024-f7f3ec5e70a6/download",
+      "file": "2020-2020生物多樣性指標調查物種點位資料.csv",
+      "fileSize": 969677,
+      "declaredEncoding": "Big5"
+    },
+    {
+      "resourceName": "2019生物多樣性指標調查物種點位資料",
+      "resourceYear": 2019,
+      "rid": "532b700d-6dbd-4b11-8f0f-49d3512ffc94",
+      "url": "https://data.taipei/api/dataset/084c5d95-7e9f-49ad-8ab9-d741a9564189/resource/532b700d-6dbd-4b11-8f0f-49d3512ffc94/download",
+      "file": "2019-2019生物多樣性指標調查物種點位資料.csv",
+      "fileSize": 1674583,
+      "declaredEncoding": "Big5"
+    },
+    {
+      "resourceName": "2018生物多樣性指標調查物種點位資料",
+      "resourceYear": 2018,
+      "rid": "5fcb31da-86eb-4274-a31a-e2148a510440",
+      "url": "https://data.taipei/api/dataset/084c5d95-7e9f-49ad-8ab9-d741a9564189/resource/5fcb31da-86eb-4274-a31a-e2148a510440/download",
+      "file": "2018-2018生物多樣性指標調查物種點位資料.csv",
+      "fileSize": 913018,
+      "declaredEncoding": "Big5"
+    },
+    {
+      "resourceName": "2017生物多樣性指標調查物種點位資料",
+      "resourceYear": 2017,
+      "rid": "79f63576-1213-4586-9a26-df1f11ba859b",
+      "url": "https://data.taipei/api/dataset/084c5d95-7e9f-49ad-8ab9-d741a9564189/resource/79f63576-1213-4586-9a26-df1f11ba859b/download",
+      "file": "2017-2017生物多樣性指標調查物種點位資料.csv",
+      "fileSize": 876335,
+      "declaredEncoding": "Big5"
+    }
+  ],
+  "warnings": [],
+  "notes": "Annual CSV resources are raw biodiversity indicator species survey point data, not real-time wildlife locations."
+}

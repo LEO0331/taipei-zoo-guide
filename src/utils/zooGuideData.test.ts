@@ -1,10 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildZooGuideSummary,
+  buildTaipeiBiodiversitySpeciesSurveyPointSummary,
   classifyExhibitAreaCategory,
+  classifySpeciesClass,
+  classifySurveyMethod,
   classifyZooEventCategory,
   decodeCsvBuffer,
+  deriveZooProximity,
   buildZooPlantSummary,
+  normalizeBiodiversitySurveyPointRow,
   getZooEventStatus,
   getPlantSpeciesKey,
   matchEventToAnimals,
@@ -14,6 +19,8 @@ import {
   normalizePlantRow,
   normalizeZooEventRow,
   parseCsv,
+  parseSurveyDate,
+  parseBiodiversityCoordinates,
   parseChineseLatinTaxonomy,
   parsePlantLocationAreas,
   parseZooDate,
@@ -276,5 +283,67 @@ describe('visitor guide data utilities', () => {
     });
     expect(summary.species).toHaveLength(1);
     expect(summary.species[0]).toMatchObject({ chineseName: '九芎', recordCount: 2, coordinateCount: 2, latestUpdatedDate: '2025-12-04' });
+  });
+
+  it('normalizes biodiversity survey point records without treating them as live locations', () => {
+    expect(classifySpeciesClass('鳥綱')).toBe('bird');
+    expect(classifySpeciesClass('條鰭魚綱')).toBe('fish');
+    expect(classifySurveyMethod('蝦籠誘捕法、垂釣')).toBe('trap');
+    expect(parseSurveyDate('20240708')).toMatchObject({ surveyDate: '2024-07-08', surveyYear: 2024, surveyMonthKey: '2024-07' });
+    expect(parseBiodiversityCoordinates({ xRaw: '121.494831', yRaw: '25.086965' })).toMatchObject({
+      coordinateSystem: 'wgs84_lonlat',
+      longitude: 121.494831,
+      latitude: 25.086965,
+      isWithinTaipeiBounds: true,
+    });
+    expect(deriveZooProximity({ longitude: 121.581, latitude: 24.9986 })).toMatchObject({ distanceToTaipeiZooKm: 0, isNearZooArea: true });
+
+    const record = normalizeBiodiversitySurveyPointRow(
+      {
+        '坐標x': '121.494831',
+        '坐標y': '25.086965',
+        '調查日期（yyyymmdd）': '20240708',
+        '物種類別（綱）': '條鰭魚綱',
+        '物種名稱（學名或中文名）': '鯔',
+        數量: '6',
+        調查法: '蝦籠誘捕法、垂釣',
+        不準度: '<25公尺',
+      },
+      { rowIndex: 0, resourceName: '2024生物多樣性指標調查物種點位資料', resourceYear: 2024, sourceFileName: '2024.csv' },
+    );
+
+    expect(record).toMatchObject({
+      module: 'taipei_biodiversity_species_survey_points',
+      coordinateSystem: 'wgs84_lonlat',
+      surveyDate: '2024-07-08',
+      speciesClassGroup: 'fish',
+      speciesName: '鯔',
+      speciesCommonNameCandidate: '鯔',
+      observationCount: 6,
+      observationCountBucket: '6-10',
+      surveyMethodCategory: 'trap',
+      coordinateUncertaintyMeters: 25,
+      hasCoordinateUncertainty: true,
+      source: '臺北市生物多樣性',
+    });
+  });
+
+  it('summarizes biodiversity records by year, species class, method, and proximity', () => {
+    const records = [
+      normalizeBiodiversitySurveyPointRow({ '坐標x': '121.494831', '坐標y': '25.086965', '調查日期（yyyymmdd）': '20240708', '物種類別（綱）': '條鰭魚綱', '物種名稱（學名或中文名）': '鯔', 數量: '6', 調查法: '蝦籠誘捕法、垂釣', 不準度: '<25公尺' }, { rowIndex: 0, resourceName: '2024生物多樣性指標調查物種點位資料', resourceYear: 2024 }),
+      normalizeBiodiversitySurveyPointRow({ '坐標x': '121.581', '坐標y': '24.9986', '調查日期（yyyymmdd）': '20230708', '物種類別（綱）': '鳥綱', '物種名稱（學名或中文名）': '白頭翁', 數量: '2', 調查法: '目視觀察', 不準度: '10' }, { rowIndex: 1, resourceName: '2023生物多樣性指標調查物種點位資料', resourceYear: 2023 }),
+    ];
+    const summary = buildTaipeiBiodiversitySpeciesSurveyPointSummary(records);
+    expect(summary).toMatchObject({
+      totalRecords: 2,
+      minSurveyYear: 2023,
+      maxSurveyYear: 2024,
+      latestSurveyYear: 2024,
+      uniqueSpeciesNameCount: 2,
+      recordsWithinTaipeiBounds: 2,
+      recordsNearZooArea: 1,
+      totalObservationCount: 8,
+    });
+    expect(summary.bySpeciesClassGroup.map((row) => row.speciesClassGroup)).toEqual(['bird', 'fish']);
   });
 });

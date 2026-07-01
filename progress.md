@@ -2,41 +2,43 @@
 
 ## Current State
 
-**Last Updated:** 2026-06-25 Asia/Taipei
+**Last Updated:** 2026-07-01 Asia/Taipei
 **Active Feature:** none
 
 ## Completed
 
-- [x] Existing animal guide, exhibit-area guide, event calendar, static data pipeline, and PWA shell remain working.
-- [x] Added `臺北市立動物園_植物資料` from the supplied UTF-8-SIG CSV.
-- [x] Added plant normalization for names, aliases, taxonomy, location aliases, dates, coordinates, external media references, and conversion warnings.
-- [x] Added plant species summary JSON while keeping plant records separate from animal records.
-- [x] Added bilingual Plant Guide, taxonomy/location filters, plant map layer, plant detail panel, overview metrics, data notes, footer/source text, and service-worker cache entries.
-- [x] Preserved multimedia licensing rule: plant media URLs stay as source-only external references and are not embedded, downloaded, rehosted, or cached.
+- [x] Added `臺北市生物多樣性` as a separate citywide biodiversity survey point module.
+- [x] Fetched 2017-2024 annual CSV resources from Taipei Open Data.
+- [x] Added parsing for survey dates, species class groups, species names, observation counts, survey methods, coordinate uncertainty, WGS84/TWD97 coordinate handling, Taipei bounds, and Taipei Zoo proximity context.
+- [x] Generated records, summary, and latest-year JSON.
+- [x] Added Biodiversity tab with filters, summary cards, charts, bounded table, notes, and detail panel.
+- [x] Added biodiversity clustered map layer, disabled by default.
+- [x] Updated README, feature list, service-worker cache, package scripts, footer/disclaimers, and handoff.
 
 ## Generated Data
 
-- Animals: 313 records.
-- Exhibit areas: 17 records.
-- Events: 116 records.
-- Plants: 276 location records grouped into 100 species.
-- Plant relationships: exhibit-area matching is text/location based only; no plant-animal relationships were added.
+- Biodiversity survey point records: 72,286.
+- Annual resources: 2017-2024.
+- Unique species names: 2,318.
+- Records within Taipei bounds: 70,067.
+- Records near Taipei Zoo area: 833.
+- Coordinate systems: 70,067 WGS84, 0 TWD97, 2,219 unknown/missing.
 
 ## Verification
 
-- [x] `npm run data:fetch:plants`: prepared `data/raw/zoo-plants/植物資料1150617b.csv` and source metadata.
-- [x] `npm run convert:data`: 313 animals, 17 areas, 116 events, 276 plants, 100 plant species.
-- [x] `npm test`: 2 files, 16 tests passed.
-- [x] `npm run build`: passed.
+- [x] `npm run data:fetch:biodiversity`: prepared 8 resources.
+- [x] `npm run convert:data`: generated biodiversity records, summary, latest-year JSON, guide summary, and conversion report.
+- [x] `npm test`: 2 files, 18 tests passed.
+- [x] `npm run build`: passed with bundled Node 24.
 - [x] `GITHUB_PAGES=true npm run build`: passed.
-- [x] Browser QA: Plant Guide, plant detail panel, map plant layer, English labels, and mobile 390x844 layout passed.
-- [x] `./init.sh`: passed, including `npm ci`, conversion, tests, builds, Pages build, and `npm audit --audit-level=moderate`.
+- [x] Browser QA: Biodiversity tab, bounded table, detail panel, clustered map layer, and no horizontal overflow passed.
+- [x] `./init.sh`: passed with bundled Node 24, including install, conversion, tests, builds, Pages build, and audit.
 
 ## Remaining Risk
 
-- Live plant CSV resource URL is not hardcoded because the uploaded CSV was supplied directly. Use `RESOURCE_URL` or `LOCAL_CSV` for live refresh.
-- Plant-to-area links are conservative and based on dataset location text/aliases; ambiguous free-text locations may remain unlinked.
+- The default system Node at `/usr/local/bin/node` is v20.2.0 and cannot run current Vite/Rolldown. Use the bundled Node path or upgrade local Node to satisfy Vite's engine requirement.
+- Biodiversity coordinates are historical survey points only; they are not current sightings, zoo exhibit locations, population estimates, or habitat boundaries.
 
 ## Next
 
-No active task remains. The next session can restart from `./init.sh`.
+No active task remains. The next session can restart from `./init.sh` with a Node version that satisfies Vite.
