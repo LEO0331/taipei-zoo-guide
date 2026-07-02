@@ -856,7 +856,7 @@ function GuideMap({
       </div>
       <div className="map-shell">
         <MapContainer center={[24.9985, 121.582]} zoom={16} minZoom={14} scrollWheelZoom className="map">
-          <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>' url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png" />
           <MapBounds points={points} />
           {layers.animals && animalPoints.map((animal, index) => (
             <Marker key={`${animal.id}-${index}`} position={[animal.latitude, animal.longitude]} icon={mapIcon('animal')}>
