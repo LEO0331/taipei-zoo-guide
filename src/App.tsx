@@ -31,7 +31,9 @@ import type {
   ZooExhibitArea,
   ZooGuideSummary,
   ZooPlantRecord,
+  RiverfrontBirdObservation,
 } from './models';
+import { birdSummary } from './utils/riverfrontBirdData';
 import {
   buildZooAnimalSummary,
   calculateDistanceMeters,
@@ -43,8 +45,8 @@ import {
 import { buildTaipeiBiodiversitySpeciesSurveyPointSummary, buildZooGuideSummary, buildZooPlantSummary, getZooEventStatus } from './utils/zooGuideData';
 import { assetPath } from './utils/assets';
 
-type Tab = 'animals' | 'plants' | 'biodiversity' | 'exhibits' | 'events' | 'map' | 'overview' | 'notes';
-type SelectedRecord = ZooAnimal | ZooPlantRecord | TaipeiBiodiversitySpeciesSurveyPointRecord | ZooExhibitArea | ZooEvent;
+type Tab = 'animals' | 'plants' | 'biodiversity' | 'birds' | 'exhibits' | 'events' | 'map' | 'overview' | 'notes';
+type SelectedRecord = ZooAnimal | ZooPlantRecord | TaipeiBiodiversitySpeciesSurveyPointRecord | ZooExhibitArea | ZooEvent | RiverfrontBirdObservation;
 type MapPoint = { id: string; latitude: number; longitude: number };
 
 const defaultFilters: Filters = {
@@ -65,6 +67,7 @@ const tabIcons = {
   animals: LayoutList,
   plants: Sprout,
   biodiversity: Globe2,
+  birds: Globe2,
   exhibits: BookOpen,
   events: CalendarDays,
   map: MapPinned,
@@ -116,6 +119,7 @@ function useZooGuideData() {
   const [animals, setAnimals] = useState<ZooAnimal[]>([]);
   const [plants, setPlants] = useState<ZooPlantRecord[]>([]);
   const [biodiversity, setBiodiversity] = useState<TaipeiBiodiversitySpeciesSurveyPointRecord[]>([]);
+  const [birds, setBirds] = useState<RiverfrontBirdObservation[]>([]);
   const [exhibitAreas, setExhibitAreas] = useState<ZooExhibitArea[]>([]);
   const [events, setEvents] = useState<ZooEvent[]>([]);
 
@@ -124,13 +128,15 @@ function useZooGuideData() {
       loadJson<ZooAnimal[]>('data/zoo-animals.json', []),
       loadJson<ZooPlantRecord[]>('data/zoo-plants.json', []),
       loadJson<TaipeiBiodiversitySpeciesSurveyPointRecord[]>('data/taipei-biodiversity-species-survey-points.json', []),
+      loadJson<RiverfrontBirdObservation[]>('data/riverfront-bird-observations/observations.json', []),
       loadJson<ZooExhibitArea[]>('data/zoo-exhibit-areas.json', []),
       loadJson<ZooEvent[]>('data/zoo-events.json', []),
     ])
-      .then(([animalRows, plantRows, biodiversityRows, areaRows, eventRows]) => {
+      .then(([animalRows, plantRows, biodiversityRows, birdRows, areaRows, eventRows]) => {
         setAnimals(animalRows);
         setPlants(plantRows);
         setBiodiversity(biodiversityRows);
+        setBirds(birdRows);
         setExhibitAreas(areaRows);
         setEvents(eventRows.map((event) => ({ ...event, eventStatus: getZooEventStatus(event) })));
       })
@@ -138,13 +144,14 @@ function useZooGuideData() {
         setAnimals([]);
         setPlants([]);
         setBiodiversity([]);
+        setBirds([]);
         setExhibitAreas([]);
         setEvents([]);
       });
   }, []);
 
-  const summary = useMemo(() => buildZooGuideSummary(animals, exhibitAreas, events, plants, biodiversity), [animals, exhibitAreas, events, plants, biodiversity]);
-  return { animals, plants, biodiversity, exhibitAreas, events, summary };
+  const summary = useMemo(() => buildZooGuideSummary(animals, exhibitAreas, events, plants, biodiversity, birds), [animals, exhibitAreas, events, plants, biodiversity, birds]);
+  return { animals, plants, biodiversity, birds, exhibitAreas, events, summary };
 }
 
 function LanguageToggle({ language, setLanguage }: { language: Language; setLanguage: (value: Language) => void }) {
@@ -167,6 +174,7 @@ function MainTabs({ activeTab, setActiveTab, language }: { activeTab: Tab; setAc
     animals: t.animalGuide,
     plants: t.plantGuide,
     biodiversity: t.biodiversity,
+    birds: language === 'zh' ? '河濱鳥類' : 'Riverfront Birds',
     exhibits: t.exhibitAreas,
     events: t.events,
     map: t.map,
@@ -769,6 +777,23 @@ function BiodiversityGuide({
   );
 }
 
+function RiverfrontBirdGuide({ records, search, language, onSelect }: { records: RiverfrontBirdObservation[]; search: string; language: Language; onSelect: (record: RiverfrontBirdObservation) => void }) {
+  const [region, setRegion] = useState(''); const [month, setMonth] = useState(''); const [status, setStatus] = useState(''); const [endemic, setEndemic] = useState(false); const [alien, setAlien] = useState(false);
+  const query = search.trim().toLowerCase();
+  const filtered = records.filter(r => (!query || [r.commonNameZh,r.scientificName,r.familyName,r.region,r.statusRaw].some(v=>v.toLowerCase().includes(query))) && (!region || r.region===region) && (!month || String(r.month)===month) && (!status || r.residencyTags.includes(status as never)) && (!endemic || r.endemicType !== 'none') && (!alien || r.isAlienSpecies));
+  const summary=birdSummary(filtered); const zh=language==='zh';
+  const exportRows = () => { const csv=['Chinese name,Scientific name,Family,Status,Period,Region,Count,Longitude,Latitude', ...filtered.map(r=>[r.commonNameZh,r.scientificName,r.familyName,r.statusRaw,r.observationPeriod,r.region,r.observedCount,r.longitude,r.latitude].map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(','))].join('\n'); const link=document.createElement('a'); link.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); link.download='riverfront-bird-observations.csv'; link.click(); URL.revokeObjectURL(link.href); };
+  return <>
+    <header className="section-heading bird-heading"><p className="eyebrow">Taipei Nature & Wildlife · historical survey explorer</p><h2>{zh?'河濱鳥類觀察':'Riverfront Bird Observations'}</h2><p>{zh?'探索歷史調查中的鳥種、河域與季節記錄。不是即時目擊、預報或保證可觀察資訊。':'Explore historical bird survey records by species, river area, and season. This is not a real-time sighting service, forecast, or viewing guarantee.'}</p></header>
+    <section className="filters bird-filters"><div className="filter-grid compact"><label>{zh?'河域':'River area'}<select value={region} onChange={e=>setRegion(e.target.value)}><option value="">{zh?'全部':'All'}</option>{[...new Set(records.map(r=>r.region))].map(v=><option key={v}>{v}</option>)}</select></label><label>{zh?'月份':'Month'}<select value={month} onChange={e=>setMonth(e.target.value)}><option value="">{zh?'全部':'All'}</option>{Array.from({length:12},(_,i)=>String(i+1)).map(v=><option key={v}>{v}</option>)}</select></label><label>{zh?'遷徙／居留':'Residency'}<select value={status} onChange={e=>setStatus(e.target.value)}><option value="">{zh?'全部':'All'}</option><option value="resident">{zh?'留鳥':'Resident'}</option><option value="winter_visitor">{zh?'冬候鳥':'Winter visitor'}</option><option value="summer_visitor">{zh?'夏候鳥':'Summer visitor'}</option><option value="passage_migrant">{zh?'過境鳥':'Passage migrant'}</option></select></label></div><div className="toggles"><label><input type="checkbox" checked={endemic} onChange={e=>setEndemic(e.target.checked)}/>{zh?'特有分類':'Endemic taxa'}</label><label><input type="checkbox" checked={alien} onChange={e=>setAlien(e.target.checked)}/>{zh?'外來種標記':'Alien species'}</label><button className="primary-button" onClick={exportRows}>{zh?'匯出篩選 CSV':'Export filtered CSV'}</button></div></section>
+    <p className="notice">{zh?'資料為 2012–2015 河濱調查的歷史紀錄；調查路線、頻率與季節會影響比較結果。':'These are historical 2012–2015 riverfront survey records. Routes, timing, and survey effort affect comparisons.'}</p><ResultLine count={filtered.length} language={language}/>
+    <section className="summary-cards">{[[zh?'觀察紀錄':'Observation records',summary.records],[zh?'鳥種':'Unique species',summary.species],[zh?'科別':'Bird families',summary.families],[zh?'記錄個體總數':'Summed recorded individuals',summary.individuals],[zh?'有效座標':'Valid coordinates',filtered.filter(r=>r.hasValidCoordinates).length],[zh?'月精度日期':'Month-only dates',filtered.filter(r=>r.datePrecision==='month').length]].map(([label,value])=><div key={String(label)}><strong>{value}</strong><span>{label}</span></div>)}</section>
+    <div className="chart-grid"><BarList title={zh?'各河域物種豐富度':'Species richness by river area'} rows={summary.regions.map(r=>({label:r.label,count:r.species}))}/><BarList title={zh?'各月物種豐富度':'Species richness by month'} rows={summary.months.map(r=>({label:r.label,count:r.species}))}/><BarList title={zh?'最多觀察紀錄的鳥種':'Top species by record count'} rows={summary.topByRecords.map(r=>({label:r.label,count:r.records}))}/><BarList title={zh?'記錄個體數最多的鳥種':'Top species by summed count'} rows={summary.topByCount.map(r=>({label:r.label,count:r.count}))}/></div>
+    <p className="notice subtle">{zh?'物種豐富度與季節圖表僅反映這份資料在目前篩選下的歷史調查出現情況，並非生物多樣性排名、族群估計或即時棲地品質。':'Richness and seasonal charts reflect historical survey occurrence within the active filters—not a biodiversity ranking, population estimate, or current habitat-quality assessment.'}</p>
+    <div className="table-wrap"><table><thead><tr>{[zh?'中文名':'Chinese name',zh?'學名':'Scientific name',zh?'科':'Family',zh?'狀態':'Source status',zh?'觀察期間':'Period',zh?'河域':'Region',zh?'數量':'Count', 'TWD97 X','TWD97 Y','Longitude','Latitude'].map(x=><th key={x}>{x}</th>)}</tr></thead><tbody>{filtered.slice(0,200).map(r=><tr key={r.id} onClick={()=>onSelect(r)}><td>{r.commonNameZh}</td><td><em>{r.scientificName}</em></td><td>{r.familyName}</td><td>{r.statusRaw}</td><td>{r.observationPeriod}{r.datePrecision==='month'?' (month only)':''}</td><td>{r.region}</td><td>{r.observedCount}</td><td>{r.xTwd97Raw}</td><td>{r.yTwd97Raw}</td><td>{r.longitude}</td><td>{r.latitude}</td></tr>)}</tbody></table></div>
+  </>;
+}
+
 function MapBounds({ points }: { points: MapPoint[] }) {
   const map = useMap();
   useEffect(() => {
@@ -953,6 +978,7 @@ function Overview({
   animals,
   plants,
   biodiversity,
+  birds,
   areas,
   events,
   summary,
@@ -961,6 +987,7 @@ function Overview({
   animals: ZooAnimal[];
   plants: ZooPlantRecord[];
   biodiversity: TaipeiBiodiversitySpeciesSurveyPointRecord[];
+  birds: RiverfrontBirdObservation[];
   areas: ZooExhibitArea[];
   events: ZooEvent[];
   summary: ZooGuideSummary;
@@ -977,6 +1004,8 @@ function Overview({
     [t.surveyRecordCount, biodiversity.length],
     [t.uniqueSpeciesCount, biodiversitySummary.uniqueSpeciesNameCount],
     [t.latestSurveyYear, biodiversitySummary.latestSurveyYear ?? t.unknown],
+    [language === 'zh' ? '河濱鳥類紀錄' : 'Riverfront bird records', summary.riverfrontBirdObservationCount ?? 0],
+    [language === 'zh' ? '河濱鳥種' : 'Riverfront bird species', summary.riverfrontBirdSpeciesCount ?? 0],
     [t.plantFamilyCount, summary.plantFamilyCount ?? 0],
     [t.exhibitAreaCount, areas.length],
     [t.exhibitAreasWithCoordinates, areas.filter((area) => area.coordinateStatus === 'valid').length],
@@ -1134,6 +1163,24 @@ function DetailPanel({
       </aside>
     );
   }
+  if ('module' in record && record.module === 'riverfront_bird_observations') {
+    return (
+      <aside className="detail-panel" aria-label={record.commonNameZh}>
+        <button className="icon-button close" onClick={onClose} aria-label="Close"><X size={20} /></button>
+        <p className="eyebrow">Historical riverfront observation</p>
+        <h2>{record.commonNameZh}</h2>
+        <p className="latin">{record.scientificName}</p>
+        <dl>
+          <DetailRow label="Family" value={record.familyName} /><DetailRow label="Source status" value={record.statusRaw} />
+          <DetailRow label="Observation period" value={record.observationPeriod ?? undefined} /><DetailRow label="Date precision" value={record.datePrecision} />
+          <DetailRow label="River area" value={record.region} /><DetailRow label="Recorded individuals" value={record.observedCount?.toString()} />
+          <DetailRow label="Endemic" value={record.endemicRaw} /><DetailRow label="Alien" value={record.alienRaw} />
+          <DetailRow label="TWD97" value={`${record.xTwd97Raw}, ${record.yTwd97Raw}`} /><DetailRow label="WGS84" value={record.longitude !== null && record.latitude !== null ? `${record.latitude}, ${record.longitude}` : undefined} />
+        </dl>
+        <p className="notice subtle">Historical survey record only; it does not establish current presence or a guaranteed sighting.</p>
+      </aside>
+    );
+  }
   const animal = record as ZooAnimal;
   const topicUrl = getOfficialTopicPageUrl(animal);
   return (
@@ -1162,7 +1209,7 @@ function Footer({ language }: { language: Language }) {
 }
 
 export default function App() {
-  const { animals, plants, biodiversity, exhibitAreas, events, summary } = useZooGuideData();
+  const { animals, plants, biodiversity, birds, exhibitAreas, events, summary } = useZooGuideData();
   const [language, setLanguage] = useLanguage();
   const [activeTab, setActiveTab] = useState<Tab>('animals');
   const [search, setSearch] = useState('');
@@ -1183,10 +1230,11 @@ export default function App() {
         {activeTab === 'animals' && <AnimalGuide animals={animals} filters={filters} setFilters={setAnimalFilters} language={language} onSelect={setSelected} />}
         {activeTab === 'plants' && <PlantGuide plants={plants} search={search} language={language} onSelect={setSelected} />}
         {activeTab === 'biodiversity' && <BiodiversityGuide records={biodiversity} search={search} language={language} onSelect={setSelected} />}
+        {activeTab === 'birds' && <RiverfrontBirdGuide records={birds} search={search} language={language} onSelect={setSelected} />}
         {activeTab === 'exhibits' && <ExhibitGuide areas={exhibitAreas} animals={animals} search={search} language={language} onSelect={setSelected} />}
         {activeTab === 'events' && <EventGuide events={events} search={search} language={language} onSelect={setSelected} />}
         {activeTab === 'map' && <GuideMap animals={filterAnimals(animals, filters)} plants={plants} biodiversity={biodiversity} areas={exhibitAreas} events={events} language={language} onSelect={setSelected} />}
-        {activeTab === 'overview' && <Overview animals={animals} plants={plants} biodiversity={biodiversity} areas={exhibitAreas} events={events} summary={summary} language={language} />}
+        {activeTab === 'overview' && <Overview animals={animals} plants={plants} biodiversity={biodiversity} birds={birds} areas={exhibitAreas} events={events} summary={summary} language={language} />}
         {activeTab === 'notes' && <DataNotes language={language} />}
       </main>
       <Footer language={language} />

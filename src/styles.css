@@ -390,6 +390,11 @@ input[type="date"] {
   color: rgba(29, 42, 34, 0.72);
 }
 
+.bird-heading { padding: 1.6rem 1rem; margin-top: 1rem; border-radius: 14px; color: #f8f5eb; background: linear-gradient(120deg, #123f4b, #27667a 54%, #b7853d); }
+.bird-heading p { color: rgba(255,255,255,.84); }
+.bird-heading .eyebrow { color: #f3d487; }
+.bird-filters { border-bottom: 1px solid var(--line); }
+
 .animal-card {
   display: grid;
   gap: 0.65rem;

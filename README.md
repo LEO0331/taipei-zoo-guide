@@ -2,7 +2,7 @@
 
 Mobile-first bilingual visitor guide built with Vite, React, TypeScript, and Leaflet.
 
-Now includes animal, plant, city biodiversity, exhibit-area, and event-calendar guide modules.
+Now includes animal, plant, city biodiversity, riverfront bird observation, exhibit-area, and event-calendar guide modules.
 
 The app keeps animal, plant, biodiversity survey, exhibit-area, and event records as separate data types. Biodiversity survey points are citywide historical survey records, not zoo exhibit animals, live wildlife locations, population estimates, or habitat boundaries. Traditional Chinese is the default language; the English toggle persists in `localStorage`.
 
@@ -11,6 +11,7 @@ The app keeps animal, plant, biodiversity survey, exhibit-area, and event record
 - Animal dataset: https://data.taipei/dataset/detail?id=5cb73231-b741-48b3-bec3-2ef57bb10029
 - Plant dataset: https://data.taipei/dataset/detail?id=48c4d6a7-4b09-4d1f-9739-ee837d302bd1
 - Taipei biodiversity dataset: https://data.taipei/dataset/detail?id=084c5d95-7e9f-49ad-8ab9-d741a9564189
+- Riverfront bird observation dataset: https://data.taipei/dataset/detail?id=8eea1e09-055b-4b3d-9472-b96744b1727e
 - Exhibit-area dataset: https://data.taipei/dataset/detail?id=1ed45a8a-d26a-4a5f-b544-788a4071eea2
 - Event-calendar dataset: https://data.taipei/dataset/detail?id=61ff4b3a-8a8a-47e4-96ec-e180b2abbfdb
 - Animal raw data: `data/raw/zoo-animals/`
@@ -21,6 +22,8 @@ The app keeps animal, plant, biodiversity survey, exhibit-area, and event record
 - Frontend static data: `public/data/`
 
 The browser never calls Taipei Open Data directly. It reads generated local JSON only.
+
+Riverfront bird observations are historical 2012–2015 survey records. Their EPSG:3826 TWD97/TM2 coordinates are converted to validated EPSG:4326 WGS84 at build time; source X/Y and month-only dates remain available in the generated data. They are not current sightings, population estimates, habitat rankings, or sighting guarantees.
 
 ## Visitor Guide Modules
 

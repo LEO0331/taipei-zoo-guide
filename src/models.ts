@@ -1,4 +1,15 @@
-export type ZooGuideModule = 'animals' | 'plants' | 'exhibit_areas' | 'events' | 'taipei_biodiversity_species_survey_points';
+export type ZooGuideModule = 'animals' | 'plants' | 'exhibit_areas' | 'events' | 'taipei_biodiversity_species_survey_points' | 'riverfront_bird_observations';
+
+export type RiverfrontBirdObservation = {
+  id: string; module: 'riverfront_bird_observations'; familyName: string; scientificName: string; commonNameZh: string;
+  endemicRaw: string; endemicType: 'endemic_species' | 'endemic_subspecies' | 'none' | 'unknown';
+  alienRaw: string; isAlienSpecies: boolean | null; statusRaw: string;
+  residencyTags: Array<'resident' | 'winter_visitor' | 'summer_visitor' | 'passage_migrant' | 'alien' | 'unknown'>;
+  abundanceStatusTags: Array<'common' | 'uncommon' | 'rare' | 'unknown'>;
+  year: number | null; month: number | null; day: number | null; observationPeriod: string | null; datePrecision: 'day' | 'month' | 'unknown';
+  regionRaw: string; region: string; xTwd97Raw: string; yTwd97Raw: string; xTwd97: number | null; yTwd97: number | null;
+  longitude: number | null; latitude: number | null; hasValidCoordinates: boolean; observedCountRaw: string; observedCount: number | null; surveyorRaw: string;
+};
 
 export type CoordinateStatus = 'valid' | 'missing' | 'outlier' | 'unparsed';
 
@@ -365,6 +376,9 @@ export type ZooGuideSummary = {
   biodiversityUniqueSpeciesCount?: number;
   biodiversityLatestSurveyYear?: number;
   biodiversityRecordsNearZooArea?: number;
+  riverfrontBirdObservationCount?: number;
+  riverfrontBirdSpeciesCount?: number;
+  riverfrontBirdIndividualCount?: number;
   exhibitAreaCount: number;
   exhibitAreaCategoryCount: number;
   eventCount: number;

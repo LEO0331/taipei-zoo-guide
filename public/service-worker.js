@@ -13,6 +13,8 @@ const APP_SHELL = [
   withBase('/data/taipei-biodiversity-species-survey-points.json'),
   withBase('/data/taipei-biodiversity-species-survey-point-summary.json'),
   withBase('/data/taipei-biodiversity-species-survey-point-latest.json'),
+  withBase('/data/riverfront-bird-observations/observations.json'),
+  withBase('/data/riverfront-bird-observations/metadata.json'),
   withBase('/data/zoo-exhibit-areas.json'),
   withBase('/data/zoo-events.json'),
   withBase('/data/zoo-guide-summary.json'),

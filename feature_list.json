@@ -87,6 +87,14 @@
       "dependencies": ["feat-001", "feat-009", "feat-010"],
       "status": "done",
       "evidence": "Fetched 8 annual CSV resources and converted 72,286 biodiversity survey point records covering 2017-2024 and 2,318 species names. Verification recorded in progress.md."
+    },
+    {
+      "id": "feat-012",
+      "name": "Riverfront bird observation explorer",
+      "description": "Separate local-static Taipei riverfront bird data, TWD97-to-WGS84 conversion, historical discovery filters, dynamic seasonal and regional insights, table, and CSV export.",
+      "dependencies": ["feat-011"],
+      "status": "done",
+      "evidence": "Official CSV converted to 11,789 historical records, 108 species, 40 source families, 3 regions, 39,817 source-recorded individuals, and 11,789 validated WGS84 coordinates. npm run build passed."
     }
   ]
 }

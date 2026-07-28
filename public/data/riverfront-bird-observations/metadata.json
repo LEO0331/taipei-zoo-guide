@@ -1,0 +1,24 @@
+{
+  "datasetPage": "https://data.taipei/dataset/detail?id=8eea1e09-055b-4b3d-9472-b96744b1727e",
+  "sourceCrs": "EPSG:3826 (TWD97 / TM2 zone 121)",
+  "targetCrs": "EPSG:4326 (WGS84)",
+  "coverage": "2012-08-01 to 2015-05-31",
+  "sourceUpdatedAt": "2023-07-05",
+  "recordCount": 11789,
+  "officialFields": [
+    "Family",
+    "Name_S",
+    "Name_C",
+    "Endemic",
+    "Alien",
+    "Status",
+    "西元年",
+    "Month",
+    "Date",
+    "Region",
+    "X_TWD97",
+    "Y_TWD97",
+    "數量",
+    "Investgat"
+  ]
+}

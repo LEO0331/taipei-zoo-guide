@@ -6,6 +6,7 @@ import type {
   ExhibitAreaCategory,
   TaipeiBiodiversitySpeciesSurveyPointRecord,
   TaipeiBiodiversitySpeciesSurveyPointSummary,
+  RiverfrontBirdObservation,
   ZooAnimal,
   ZooEvent,
   ZooEventCategory,
@@ -957,6 +958,7 @@ export function buildZooGuideSummary(
   events: ZooEvent[],
   plants: ZooPlantRecord[] = [],
   biodiversityRecords: TaipeiBiodiversitySpeciesSurveyPointRecord[] = [],
+  riverfrontBirdRecords: RiverfrontBirdObservation[] = [],
 ): ZooGuideSummary {
   const dates = events.flatMap((event) => [event.startDate, event.endDate]).filter((date): date is string => Boolean(date));
   const plantSummary = buildZooPlantSummary(plants);
@@ -973,6 +975,9 @@ export function buildZooGuideSummary(
     biodiversityUniqueSpeciesCount: biodiversitySummary.uniqueSpeciesNameCount,
     biodiversityLatestSurveyYear: biodiversitySummary.latestSurveyYear,
     biodiversityRecordsNearZooArea: biodiversitySummary.recordsNearZooArea,
+    riverfrontBirdObservationCount: riverfrontBirdRecords.length,
+    riverfrontBirdSpeciesCount: new Set(riverfrontBirdRecords.map((record) => record.commonNameZh).filter(Boolean)).size,
+    riverfrontBirdIndividualCount: riverfrontBirdRecords.reduce((total, record) => total + (record.observedCount ?? 0), 0),
     exhibitAreaCount: exhibitAreas.length,
     exhibitAreaCategoryCount: new Set(exhibitAreas.map((area) => area.areaCategory)).size,
     eventCount: events.length,

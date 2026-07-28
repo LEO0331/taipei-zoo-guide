@@ -2,10 +2,15 @@
 
 ## Current State
 
-**Last Updated:** 2026-07-01 Asia/Taipei
+**Last Updated:** 2026-07-28 Asia/Taipei
 **Active Feature:** none
 
 ## Completed
+
+- [x] Added the separate Riverfront Bird Observations / 河濱鳥類 historical-survey explorer and local static data pipeline.
+- [x] Downloaded and preserved the official 14-field CSV, converted EPSG:3826 TWD97/TM2 coordinates to validated WGS84, and generated JSON, GeoJSON, and metadata.
+- [x] Added bird, region, month, residency, endemic, and alien filters; dynamic regional and seasonal insights; a table; and filtered CSV export.
+- [x] Completed cleanup and review fixes: status-token parsing, combined-summary coverage, cross-platform test discovery, readable bird pipeline logic, and regression tests.
 
 - [x] Added `臺北市生物多樣性` as a separate citywide biodiversity survey point module.
 - [x] Fetched 2017-2024 annual CSV resources from Taipei Open Data.
@@ -28,7 +33,7 @@
 
 - [x] `npm run data:fetch:biodiversity`: prepared 8 resources.
 - [x] `npm run convert:data`: generated biodiversity records, summary, latest-year JSON, guide summary, and conversion report.
-- [x] `npm test`: 2 files, 18 tests passed.
+- [x] `npm test`: 3 files, 20 tests passed.
 - [x] `npm run build`: passed with bundled Node 24.
 - [x] `GITHUB_PAGES=true npm run build`: passed.
 - [x] Browser QA: Biodiversity tab, bounded table, detail panel, clustered map layer, and no horizontal overflow passed.
