@@ -15,7 +15,8 @@
 - Riverfront birds: `data/raw/riverfront-bird-observations.csv` is converted by `npm run data:convert:riverfront-birds` to `public/data/riverfront-bird-observations/`; source TWD97/TM2 is converted to WGS84 during conversion.
 - Riverfront reptiles: `data/raw/riverfront-reptile-observations.csv` is converted by `npm run data:convert:riverfront-reptiles` to `public/data/riverfront-reptile-observations/`; it preserves source taxonomy/date/time fields and converts TWD97/TM2 to WGS84 during conversion.
 - Runtime performance: `useZooGuideData` lazily loads datasets for the active tab. The map loads its default small layers on entry and requests biodiversity/reptile data only when those map layers are enabled. The service worker is network-first for `/data/` with offline fallback.
-- Navigation: the primary row has four destination groups (Explore Zoo, Nature & Wildlife, Plan Your Visit, Data & Notes). Selecting one opens a context row of two or three tabs. On mobile the current row uses an equal-width grid so no section tab requires horizontal scrolling.
+- Biodiversity performance: the Biodiversity and Overview tabs load `taipei-biodiversity-species-survey-point-summary.json` first (about 10 KB). The 72,286-record `taipei-biodiversity-species-survey-points.json` file (about 113 MB) is only requested after the visitor selects **Load detailed records**; the map layer remains opt-in.
+- Navigation: the primary row has four destination groups (Explore Zoo, Nature & Wildlife, Plan Your Visit, Data & Notes). Selecting one opens a context row of two or three tabs. Through tablet widths, the context row uses equal-width buttons with centered icon-and-label groups; wide desktops use compact content-width tabs.
 
 ## Verification Evidence
 

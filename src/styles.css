@@ -434,6 +434,18 @@ input[type="date"] {
   color: rgba(29, 42, 34, 0.72);
 }
 
+.biodiversity-details-prompt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.biodiversity-details-prompt p {
+  flex: 1 1 32rem;
+  margin: 0;
+}
+
 .bird-heading { padding: 1.6rem 1rem; margin-top: 1rem; border-radius: 14px; color: #f8f5eb; background: linear-gradient(120deg, #123f4b, #27667a 54%, #b7853d); }
 .reptile-heading { padding: 1.6rem 1rem; margin-top: 1rem; border-radius: 14px; color: #f8f5eb; background: linear-gradient(120deg, #3b4a25, #6b7440 54%, #b7853d); }
 .bird-heading p { color: rgba(255,255,255,.84); }
@@ -824,15 +836,6 @@ footer {
     white-space: nowrap;
   }
 
-  .secondary-tabs {
-    display: flex;
-  }
-
-  .tabs button {
-    padding: 0 0.9rem;
-    white-space: nowrap;
-  }
-
   .filter-grid {
     grid-template-columns: repeat(4, 1fr);
   }
@@ -879,6 +882,15 @@ footer {
 }
 
 @media (min-width: 1040px) {
+  .secondary-tabs {
+    display: flex;
+  }
+
+  .tabs button {
+    padding: 0 0.9rem;
+    white-space: nowrap;
+  }
+
   .directory-grid {
     grid-template-columns: repeat(3, 1fr);
   }

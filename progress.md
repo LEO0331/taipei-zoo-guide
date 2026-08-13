@@ -14,6 +14,7 @@
 - [x] Added Riverfront Reptile Observations as a separate historical ecology module, including static CSV conversion, EPSG:3826-to-WGS84 conversion, discovery filters, insights, CSV export, detail drawer, and map layer.
 - [x] Improved tab responsiveness: data now loads on demand by active tab, map-only wildlife layers load on enable, and the service worker no longer precaches bulk datasets.
 - [x] Replaced the long flat tab strip with responsive grouped navigation: Explore Zoo, Nature & Wildlife, Plan Your Visit, and Data & Notes. Each group exposes at most three context-specific sub-tabs.
+- [x] Removed the 113 MB biodiversity raw-record download from the default tab and overview path. Both now use the existing compact summary; detailed search, filters, and rows are available only after an explicit load action.
 
 - [x] Added `臺北市生物多樣性` as a separate citywide biodiversity survey point module.
 - [x] Fetched 2017-2024 annual CSV resources from Taipei Open Data.
@@ -41,7 +42,7 @@
 - [x] `GITHUB_PAGES=true npm run build`: passed.
 - [x] Browser QA: Biodiversity tab, bounded table, detail panel, clustered map layer, and no horizontal overflow passed.
 - [x] `./init.sh`: passed with bundled Node 24, including install, conversion, tests, builds, Pages build, and audit.
-- [x] Responsive grouped-navigation QA: at 390px, four primary groups and all current sub-tabs fit without horizontal overflow; desktop layout and Nature & Wildlife group switching passed.
+- [x] Responsive grouped-navigation QA: at 390px, four primary groups and all current sub-tabs fit without horizontal overflow; at 768px, every secondary icon-and-label group is centered in an equal-width button; desktop layout and Nature & Wildlife group switching passed.
 - [x] `npm test`: 4 files, 21 tests passed.
 - [x] `npm run build` and `GITHUB_PAGES=true npm run build`: passed.
 

@@ -24,6 +24,7 @@ import type {
   Filters,
   Language,
   TaipeiBiodiversitySpeciesSurveyPointRecord,
+  TaipeiBiodiversitySpeciesSurveyPointSummary,
   ZooAnimal,
   ZooEvent,
   ZooEventCategory,
@@ -49,7 +50,7 @@ import { assetPath } from './utils/assets';
 
 type Tab = 'animals' | 'plants' | 'biodiversity' | 'birds' | 'reptiles' | 'exhibits' | 'events' | 'map' | 'overview' | 'notes';
 type NavigationGroup = 'zoo' | 'nature' | 'visit' | 'data';
-type DatasetKey = 'animals' | 'plants' | 'biodiversity' | 'birds' | 'reptiles' | 'exhibits' | 'events';
+type DatasetKey = 'animals' | 'plants' | 'biodiversity' | 'biodiversitySummary' | 'birds' | 'reptiles' | 'exhibits' | 'events';
 type SelectedRecord = ZooAnimal | ZooPlantRecord | TaipeiBiodiversitySpeciesSurveyPointRecord | ZooExhibitArea | ZooEvent | RiverfrontBirdObservation | RiverfrontReptileObservation;
 type MapPoint = { id: string; latitude: number; longitude: number };
 
@@ -123,13 +124,13 @@ async function loadJson<T>(path: string, fallback: T): Promise<T> {
 const tabDatasets: Record<Tab, DatasetKey[]> = {
   animals: ['animals'],
   plants: ['plants'],
-  biodiversity: ['biodiversity'],
+  biodiversity: ['biodiversitySummary'],
   birds: ['birds'],
   reptiles: ['reptiles'],
   exhibits: ['animals', 'exhibits'],
   events: ['events'],
   map: ['animals', 'plants', 'exhibits', 'events'],
-  overview: ['animals', 'plants', 'biodiversity', 'birds', 'reptiles', 'exhibits', 'events'],
+  overview: ['animals', 'plants', 'biodiversitySummary', 'birds', 'reptiles', 'exhibits', 'events'],
   notes: [],
 };
 
@@ -150,6 +151,7 @@ function useZooGuideData(activeTab: Tab) {
   const [animals, setAnimals] = useState<ZooAnimal[]>([]);
   const [plants, setPlants] = useState<ZooPlantRecord[]>([]);
   const [biodiversity, setBiodiversity] = useState<TaipeiBiodiversitySpeciesSurveyPointRecord[]>([]);
+  const [biodiversitySummary, setBiodiversitySummary] = useState<TaipeiBiodiversitySpeciesSurveyPointSummary | null>(null);
   const [birds, setBirds] = useState<RiverfrontBirdObservation[]>([]);
   const [reptiles, setReptiles] = useState<RiverfrontReptileObservation[]>([]);
   const [exhibitAreas, setExhibitAreas] = useState<ZooExhibitArea[]>([]);
@@ -167,6 +169,7 @@ function useZooGuideData(activeTab: Tab) {
       if (dataset === 'animals') setAnimals(await loadJson<ZooAnimal[]>('data/zoo-animals.json', []));
       if (dataset === 'plants') setPlants(await loadJson<ZooPlantRecord[]>('data/zoo-plants.json', []));
       if (dataset === 'biodiversity') setBiodiversity(await loadJson<TaipeiBiodiversitySpeciesSurveyPointRecord[]>('data/taipei-biodiversity-species-survey-points.json', []));
+      if (dataset === 'biodiversitySummary') setBiodiversitySummary(await loadJson<TaipeiBiodiversitySpeciesSurveyPointSummary | null>('data/taipei-biodiversity-species-survey-point-summary.json', null));
       if (dataset === 'birds') setBirds(await loadJson<RiverfrontBirdObservation[]>('data/riverfront-bird-observations/observations.json', []));
       if (dataset === 'reptiles') setReptiles(await loadJson<RiverfrontReptileObservation[]>('data/riverfront-reptile-observations/observations.json', []));
       if (dataset === 'exhibits') setExhibitAreas(await loadJson<ZooExhibitArea[]>('data/zoo-exhibit-areas.json', []));
@@ -185,7 +188,7 @@ function useZooGuideData(activeTab: Tab) {
   }, [activeTab]);
 
   const summary = useMemo(() => buildZooGuideSummary(animals, exhibitAreas, events, plants, biodiversity, birds, reptiles), [animals, exhibitAreas, events, plants, biodiversity, birds, reptiles]);
-  return { animals, plants, biodiversity, birds, reptiles, exhibitAreas, events, summary, loading, loadDataset };
+  return { animals, plants, biodiversity, biodiversitySummary, birds, reptiles, exhibitAreas, events, summary, loading, loadDataset };
 }
 
 function LanguageToggle({ language, setLanguage }: { language: Language; setLanguage: (value: Language) => void }) {
@@ -750,13 +753,19 @@ function surveyMethodCategoryLabel(category: BiodiversitySurveyMethodCategory, l
 
 function BiodiversityGuide({
   records,
+  datasetSummary,
   search,
   language,
+  onLoadDetails,
+  isLoadingDetails,
   onSelect,
 }: {
   records: TaipeiBiodiversitySpeciesSurveyPointRecord[];
+  datasetSummary: TaipeiBiodiversitySpeciesSurveyPointSummary | null;
   search: string;
   language: Language;
+  onLoadDetails: () => void;
+  isLoadingDetails: boolean;
   onSelect: (record: TaipeiBiodiversitySpeciesSurveyPointRecord) => void;
 }) {
   const t = getTranslation(language);
@@ -765,9 +774,10 @@ function BiodiversityGuide({
   const [method, setMethod] = useState('');
   const [withinTaipei, setWithinTaipei] = useState(false);
   const [nearZoo, setNearZoo] = useState(false);
-  const years = sortedUnique(records.map((record) => record.surveyYear?.toString()));
-  const classGroups = sortedUnique(records.map((record) => record.speciesClassGroup));
-  const methods = sortedUnique(records.map((record) => record.surveyMethodCategory));
+  const hasDetails = records.length > 0;
+  const years = hasDetails ? sortedUnique(records.map((record) => record.surveyYear?.toString())) : datasetSummary?.bySurveyYear.map((row) => String(row.surveyYear)) ?? [];
+  const classGroups = hasDetails ? sortedUnique(records.map((record) => record.speciesClassGroup)) : datasetSummary?.bySpeciesClassGroup.map((row) => row.speciesClassGroup) ?? [];
+  const methods = hasDetails ? sortedUnique(records.map((record) => record.surveyMethodCategory)) : datasetSummary?.bySurveyMethodCategory.map((row) => row.surveyMethodCategory) ?? [];
   const query = search.trim().toLocaleLowerCase();
   const filtered = records.filter((record) => {
     const searchable = [record.speciesName, record.speciesClass, record.surveyMethod, record.surveyYear?.toString(), record.resourceName];
@@ -779,7 +789,7 @@ function BiodiversityGuide({
     if (nearZoo && !record.isNearZooArea) return false;
     return true;
   });
-  const summary = buildTaipeiBiodiversitySpeciesSurveyPointSummary(filtered);
+  const summary = hasDetails ? buildTaipeiBiodiversitySpeciesSurveyPointSummary(filtered) : datasetSummary ?? buildTaipeiBiodiversitySpeciesSurveyPointSummary([]);
   const cards = [
     [t.surveyRecordCount, summary.totalRecords],
     [t.surveyYearRange, summary.minSurveyYear && summary.maxSurveyYear ? `${summary.minSurveyYear}-${summary.maxSurveyYear}` : t.unknown],
@@ -794,7 +804,7 @@ function BiodiversityGuide({
         <h2>{t.taipeiBiodiversitySpeciesSurveyPoints}</h2>
         <p>{t.biodiversitySubtitle}</p>
       </header>
-      <section className="filters">
+      {hasDetails ? <section className="filters">
         <div className="filter-grid compact">
           <label>{t.surveyYear}<select value={year} onChange={(event) => setYear(event.target.value)}><option value="">{t.all}</option>{years.map((value) => <option key={value}>{value}</option>)}</select></label>
           <label>{t.speciesClassGroup}<select value={classGroup} onChange={(event) => setClassGroup(event.target.value)}><option value="">{t.all}</option>{classGroups.map((value) => <option key={value} value={value}>{speciesClassGroupLabel(value as BiodiversitySpeciesClassGroup, language)}</option>)}</select></label>
@@ -805,7 +815,11 @@ function BiodiversityGuide({
           <label><input type="checkbox" checked={nearZoo} onChange={(event) => setNearZoo(event.target.checked)} />{t.nearTaipeiZooArea}</label>
         </div>
       </section>
-      <ResultLine count={filtered.length} language={language} />
+      : <section className="notice biodiversity-details-prompt">
+        <p>{language === 'zh' ? '概覽與圖表使用輕量摘要載入。若要搜尋、篩選或查看逐筆調查資料，才需下載完整的 72,286 筆紀錄（約 113 MB）。' : 'The overview and charts load from a lightweight summary. Search, filters, and individual survey records require the full 72,286-record download (about 113 MB).'}</p>
+        <button className="primary-button" onClick={onLoadDetails} disabled={isLoadingDetails}>{isLoadingDetails ? (language === 'zh' ? '正在載入詳細紀錄…' : 'Loading detailed records…') : (language === 'zh' ? '載入詳細紀錄' : 'Load detailed records')}</button>
+      </section>}
+      <ResultLine count={hasDetails ? filtered.length : summary.totalRecords} language={language} />
       <p className="notice subtle">{t.biodiversityMapNotice}</p>
       <section className="summary-cards">{cards.map(([label, value]) => <div key={label}><strong>{value}</strong><span>{label}</span></div>)}</section>
       <div className="chart-grid">
@@ -815,7 +829,7 @@ function BiodiversityGuide({
         <BarList title={t.mostRecordedSpecies} rows={summary.topSpeciesByRecordCount.map((row) => ({ label: row.speciesName, count: row.recordCount }))} />
       </div>
       <p className="notice subtle">{t.biodiversityChartNotice}</p>
-      <div className="table-wrap biodiversity-table">
+      {hasDetails && <div className="table-wrap biodiversity-table">
         <table>
           <thead><tr><th>{t.surveyDate}</th><th>{t.speciesClass}</th><th>{t.speciesName}</th><th>{t.observationCount}</th><th>{t.surveyMethod}</th><th>{t.coordinateUncertainty}</th><th>{t.resourceYear}</th></tr></thead>
           <tbody>{filtered.slice(0, 100).map((record) => (
@@ -825,6 +839,7 @@ function BiodiversityGuide({
           ))}</tbody>
         </table>
       </div>
+      }
       <p className="notice subtle">{t.biodiversityZooExhibitDistinctionNote}</p>
       <p className="notice subtle">{t.wildlifeRespectNote}</p>
     </>
@@ -1061,7 +1076,7 @@ function BarList({ title, rows }: { title: string; rows: Array<{ label: string; 
 function Overview({
   animals,
   plants,
-  biodiversity,
+  biodiversitySummary,
   birds,
   areas,
   events,
@@ -1070,7 +1085,7 @@ function Overview({
 }: {
   animals: ZooAnimal[];
   plants: ZooPlantRecord[];
-  biodiversity: TaipeiBiodiversitySpeciesSurveyPointRecord[];
+  biodiversitySummary: TaipeiBiodiversitySpeciesSurveyPointSummary | null;
   birds: RiverfrontBirdObservation[];
   areas: ZooExhibitArea[];
   events: ZooEvent[];
@@ -1080,14 +1095,14 @@ function Overview({
   const t = getTranslation(language);
   const animalSummary = buildZooAnimalSummary(animals);
   const plantSummary = buildZooPlantSummary(plants);
-  const biodiversitySummary = buildTaipeiBiodiversitySpeciesSurveyPointSummary(biodiversity);
+  const biodiversityData = biodiversitySummary ?? buildTaipeiBiodiversitySpeciesSurveyPointSummary([]);
   const cards = [
     [t.totalAnimalRecords, animals.length],
     [t.plantRecordCount, plants.length],
     [t.plantSpeciesCount, plantSummary.species.length],
-    [t.surveyRecordCount, biodiversity.length],
-    [t.uniqueSpeciesCount, biodiversitySummary.uniqueSpeciesNameCount],
-    [t.latestSurveyYear, biodiversitySummary.latestSurveyYear ?? t.unknown],
+    [t.surveyRecordCount, biodiversityData.totalRecords],
+    [t.uniqueSpeciesCount, biodiversityData.uniqueSpeciesNameCount],
+    [t.latestSurveyYear, biodiversityData.latestSurveyYear ?? t.unknown],
     [language === 'zh' ? '河濱鳥類紀錄' : 'Riverfront bird records', summary.riverfrontBirdObservationCount ?? 0],
     [language === 'zh' ? '河濱鳥種' : 'Riverfront bird species', summary.riverfrontBirdSpeciesCount ?? 0],
     [t.plantFamilyCount, summary.plantFamilyCount ?? 0],
@@ -1111,8 +1126,8 @@ function Overview({
         <BarList title={t.animalsByExhibitArea} rows={animalSummary.byExhibitArea.map((row) => ({ label: row.exhibitArea, count: row.count }))} />
         <BarList title={t.plantsByFamily} rows={plantSummary.byFamily.map((row) => ({ label: row.familyRaw, count: row.uniquePlantCount }))} />
         <BarList title={t.plantsByLocation} rows={plantSummary.byLocationArea.map((row) => ({ label: row.locationArea, count: row.uniquePlantCount }))} />
-        <BarList title={t.speciesClasses} rows={biodiversitySummary.bySpeciesClassGroup.map((row) => ({ label: speciesClassGroupLabel(row.speciesClassGroup, language), count: row.recordCount }))} />
-        <BarList title={t.yearlyTrends} rows={biodiversitySummary.bySurveyYear.map((row) => ({ label: String(row.surveyYear), count: row.recordCount }))} />
+        <BarList title={t.speciesClasses} rows={biodiversityData.bySpeciesClassGroup.map((row) => ({ label: speciesClassGroupLabel(row.speciesClassGroup, language), count: row.recordCount }))} />
+        <BarList title={t.yearlyTrends} rows={biodiversityData.bySurveyYear.map((row) => ({ label: String(row.surveyYear), count: row.recordCount }))} />
         <BarList title={t.eventsByCategory} rows={summary.byEventCategory.map((row) => ({ label: eventCategoryLabel(row.eventCategory, language), count: row.count }))} />
         <BarList title={t.eventsByStatus} rows={summary.byEventStatus.map((row) => ({ label: eventStatusLabel(row.eventStatus, language), count: row.count }))} />
         <BarList title={t.eventsByMonth} rows={summary.byEventMonth.map((row) => ({ label: row.month, count: row.count }))} />
@@ -1298,7 +1313,7 @@ function Footer({ language }: { language: Language }) {
 export default function App() {
   const [language, setLanguage] = useLanguage();
   const [activeTab, setActiveTab] = useState<Tab>('animals');
-  const { animals, plants, biodiversity, birds, reptiles, exhibitAreas, events, summary, loading, loadDataset } = useZooGuideData(activeTab);
+  const { animals, plants, biodiversity, biodiversitySummary, birds, reptiles, exhibitAreas, events, summary, loading, loadDataset } = useZooGuideData(activeTab);
   const [search, setSearch] = useState('');
   const [animalFilters, setAnimalFilters] = useState<Filters>(defaultFilters);
   const [selected, setSelected] = useState<SelectedRecord | null>(null);
@@ -1318,13 +1333,13 @@ export default function App() {
         {isTabLoading ? <LoadingState language={language} /> : <>
           {activeTab === 'animals' && <AnimalGuide animals={animals} filters={filters} setFilters={setAnimalFilters} language={language} onSelect={setSelected} />}
           {activeTab === 'plants' && <PlantGuide plants={plants} search={search} language={language} onSelect={setSelected} />}
-          {activeTab === 'biodiversity' && <BiodiversityGuide records={biodiversity} search={search} language={language} onSelect={setSelected} />}
+          {activeTab === 'biodiversity' && <BiodiversityGuide records={biodiversity} datasetSummary={biodiversitySummary} search={search} language={language} onLoadDetails={() => void loadDataset('biodiversity')} isLoadingDetails={loading.includes('biodiversity')} onSelect={setSelected} />}
           {activeTab === 'birds' && <RiverfrontBirdGuide records={birds} search={search} language={language} onSelect={setSelected} />}
           {activeTab === 'reptiles' && <RiverfrontReptileGuide records={reptiles} search={search} language={language} onSelect={setSelected} />}
           {activeTab === 'exhibits' && <ExhibitGuide areas={exhibitAreas} animals={animals} search={search} language={language} onSelect={setSelected} />}
           {activeTab === 'events' && <EventGuide events={events} search={search} language={language} onSelect={setSelected} />}
           {activeTab === 'map' && <GuideMap animals={filterAnimals(animals, filters)} plants={plants} biodiversity={biodiversity} reptiles={reptiles} areas={exhibitAreas} events={events} language={language} onLoadDataset={loadDataset} onSelect={setSelected} />}
-          {activeTab === 'overview' && <Overview animals={animals} plants={plants} biodiversity={biodiversity} birds={birds} areas={exhibitAreas} events={events} summary={summary} language={language} />}
+          {activeTab === 'overview' && <Overview animals={animals} plants={plants} biodiversitySummary={biodiversitySummary} birds={birds} areas={exhibitAreas} events={events} summary={summary} language={language} />}
           {activeTab === 'notes' && <DataNotes language={language} />}
         </>}
       </main>
