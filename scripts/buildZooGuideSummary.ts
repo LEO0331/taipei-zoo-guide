@@ -1,5 +1,5 @@
 import path from 'node:path';
-import type { RiverfrontBirdObservation, TaipeiBiodiversitySpeciesSurveyPointRecord, ZooAnimal, ZooEvent, ZooExhibitArea, ZooPlantRecord } from '../src/models';
+import type { RiverfrontBirdObservation, RiverfrontReptileObservation, TaipeiBiodiversitySpeciesSurveyPointRecord, ZooAnimal, ZooEvent, ZooExhibitArea, ZooPlantRecord } from '../src/models';
 import { buildZooGuideSummary } from '../src/utils/zooGuideData';
 import { mergeConversionReport, readJson, writeJson } from './zooGuideCsv';
 
@@ -15,7 +15,8 @@ async function main() {
     [],
   );
   const riverfrontBirds = await readJson<RiverfrontBirdObservation[]>(path.join(OUTPUT_DIR, 'riverfront-bird-observations/observations.json'), []);
-  const summary = buildZooGuideSummary(animals, exhibitAreas, events, plants, biodiversity, riverfrontBirds);
+  const riverfrontReptiles = await readJson<RiverfrontReptileObservation[]>(path.join(OUTPUT_DIR, 'riverfront-reptile-observations/observations.json'), []);
+  const summary = buildZooGuideSummary(animals, exhibitAreas, events, plants, biodiversity, riverfrontBirds, riverfrontReptiles);
   await writeJson(path.join(OUTPUT_DIR, 'zoo-guide-summary.json'), summary);
   await mergeConversionReport(OUTPUT_DIR, 'guideSummary', summary);
   console.log(

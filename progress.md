@@ -2,7 +2,7 @@
 
 ## Current State
 
-**Last Updated:** 2026-07-28 Asia/Taipei
+**Last Updated:** 2026-08-13 Asia/Taipei
 **Active Feature:** none
 
 ## Completed
@@ -11,6 +11,7 @@
 - [x] Downloaded and preserved the official 14-field CSV, converted EPSG:3826 TWD97/TM2 coordinates to validated WGS84, and generated JSON, GeoJSON, and metadata.
 - [x] Added bird, region, month, residency, endemic, and alien filters; dynamic regional and seasonal insights; a table; and filtered CSV export.
 - [x] Completed cleanup and review fixes: status-token parsing, combined-summary coverage, cross-platform test discovery, readable bird pipeline logic, and regression tests.
+- [x] Added Riverfront Reptile Observations as a separate historical ecology module, including static CSV conversion, EPSG:3826-to-WGS84 conversion, discovery filters, insights, CSV export, detail drawer, and map layer.
 
 - [x] Added `臺北市生物多樣性` as a separate citywide biodiversity survey point module.
 - [x] Fetched 2017-2024 annual CSV resources from Taipei Open Data.

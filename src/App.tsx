@@ -32,8 +32,10 @@ import type {
   ZooGuideSummary,
   ZooPlantRecord,
   RiverfrontBirdObservation,
+  RiverfrontReptileObservation,
 } from './models';
 import { birdSummary } from './utils/riverfrontBirdData';
+import { reptileSummary } from './utils/riverfrontReptileData';
 import {
   buildZooAnimalSummary,
   calculateDistanceMeters,
@@ -45,8 +47,8 @@ import {
 import { buildTaipeiBiodiversitySpeciesSurveyPointSummary, buildZooGuideSummary, buildZooPlantSummary, getZooEventStatus } from './utils/zooGuideData';
 import { assetPath } from './utils/assets';
 
-type Tab = 'animals' | 'plants' | 'biodiversity' | 'birds' | 'exhibits' | 'events' | 'map' | 'overview' | 'notes';
-type SelectedRecord = ZooAnimal | ZooPlantRecord | TaipeiBiodiversitySpeciesSurveyPointRecord | ZooExhibitArea | ZooEvent | RiverfrontBirdObservation;
+type Tab = 'animals' | 'plants' | 'biodiversity' | 'birds' | 'reptiles' | 'exhibits' | 'events' | 'map' | 'overview' | 'notes';
+type SelectedRecord = ZooAnimal | ZooPlantRecord | TaipeiBiodiversitySpeciesSurveyPointRecord | ZooExhibitArea | ZooEvent | RiverfrontBirdObservation | RiverfrontReptileObservation;
 type MapPoint = { id: string; latitude: number; longitude: number };
 
 const defaultFilters: Filters = {
@@ -68,6 +70,7 @@ const tabIcons = {
   plants: Sprout,
   biodiversity: Globe2,
   birds: Globe2,
+  reptiles: Globe2,
   exhibits: BookOpen,
   events: CalendarDays,
   map: MapPinned,
@@ -120,6 +123,7 @@ function useZooGuideData() {
   const [plants, setPlants] = useState<ZooPlantRecord[]>([]);
   const [biodiversity, setBiodiversity] = useState<TaipeiBiodiversitySpeciesSurveyPointRecord[]>([]);
   const [birds, setBirds] = useState<RiverfrontBirdObservation[]>([]);
+  const [reptiles, setReptiles] = useState<RiverfrontReptileObservation[]>([]);
   const [exhibitAreas, setExhibitAreas] = useState<ZooExhibitArea[]>([]);
   const [events, setEvents] = useState<ZooEvent[]>([]);
 
@@ -129,14 +133,16 @@ function useZooGuideData() {
       loadJson<ZooPlantRecord[]>('data/zoo-plants.json', []),
       loadJson<TaipeiBiodiversitySpeciesSurveyPointRecord[]>('data/taipei-biodiversity-species-survey-points.json', []),
       loadJson<RiverfrontBirdObservation[]>('data/riverfront-bird-observations/observations.json', []),
+      loadJson<RiverfrontReptileObservation[]>('data/riverfront-reptile-observations/observations.json', []),
       loadJson<ZooExhibitArea[]>('data/zoo-exhibit-areas.json', []),
       loadJson<ZooEvent[]>('data/zoo-events.json', []),
     ])
-      .then(([animalRows, plantRows, biodiversityRows, birdRows, areaRows, eventRows]) => {
+      .then(([animalRows, plantRows, biodiversityRows, birdRows, reptileRows, areaRows, eventRows]) => {
         setAnimals(animalRows);
         setPlants(plantRows);
         setBiodiversity(biodiversityRows);
         setBirds(birdRows);
+        setReptiles(reptileRows);
         setExhibitAreas(areaRows);
         setEvents(eventRows.map((event) => ({ ...event, eventStatus: getZooEventStatus(event) })));
       })
@@ -145,13 +151,14 @@ function useZooGuideData() {
         setPlants([]);
         setBiodiversity([]);
         setBirds([]);
+        setReptiles([]);
         setExhibitAreas([]);
         setEvents([]);
       });
   }, []);
 
-  const summary = useMemo(() => buildZooGuideSummary(animals, exhibitAreas, events, plants, biodiversity, birds), [animals, exhibitAreas, events, plants, biodiversity, birds]);
-  return { animals, plants, biodiversity, birds, exhibitAreas, events, summary };
+  const summary = useMemo(() => buildZooGuideSummary(animals, exhibitAreas, events, plants, biodiversity, birds, reptiles), [animals, exhibitAreas, events, plants, biodiversity, birds, reptiles]);
+  return { animals, plants, biodiversity, birds, reptiles, exhibitAreas, events, summary };
 }
 
 function LanguageToggle({ language, setLanguage }: { language: Language; setLanguage: (value: Language) => void }) {
@@ -175,6 +182,7 @@ function MainTabs({ activeTab, setActiveTab, language }: { activeTab: Tab; setAc
     plants: t.plantGuide,
     biodiversity: t.biodiversity,
     birds: language === 'zh' ? '河濱鳥類' : 'Riverfront Birds',
+    reptiles: language === 'zh' ? '河濱爬蟲' : 'Riverfront Reptiles',
     exhibits: t.exhibitAreas,
     events: t.events,
     map: t.map,
@@ -794,6 +802,24 @@ function RiverfrontBirdGuide({ records, search, language, onSelect }: { records:
   </>;
 }
 
+function RiverfrontReptileGuide({ records, search, language, onSelect }: { records: RiverfrontReptileObservation[]; search: string; language: Language; onSelect: (record: RiverfrontReptileObservation) => void }) {
+  const zh = language === 'zh';
+  const [region, setRegion] = useState(''); const [family, setFamily] = useState(''); const [month, setMonth] = useState(''); const [endemic, setEndemic] = useState(false); const [alien, setAlien] = useState(false);
+  const query = search.trim().toLocaleLowerCase();
+  const filtered = records.filter((record) => (!query || [record.commonNameZh, record.scientificName, record.familyName, record.group, record.region].some((value) => value.toLocaleLowerCase().includes(query))) && (!region || record.region === region) && (!family || record.familyName === family) && (!month || String(record.month) === month) && (!endemic || record.endemicType !== 'none') && (!alien || record.isAlienSpecies));
+  const summary = reptileSummary(filtered);
+  const exportCsv = () => { const header = 'ID,Group,Family,Chinese name,Scientific name,Period,Time,Region,Count,Longitude,Latitude'; const body = filtered.map((record) => [record.sourceSequenceNumber, record.group, record.familyName, record.commonNameZh, record.scientificName, record.observationPeriod, record.observationTime, record.region, record.observedCount, record.longitude, record.latitude].map((value) => `"${String(value ?? '').replace(/"/g, '""')}"`).join(',')); const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([[header, ...body].join('\n')], { type: 'text/csv' })); link.download = 'riverfront-reptile-observations.csv'; link.click(); URL.revokeObjectURL(link.href); };
+  return <>
+    <header className="section-heading reptile-heading"><p className="eyebrow">Taipei Nature & Wildlife · historical survey explorer</p><h2>{zh ? '河濱爬蟲觀察' : 'Riverfront Reptile Observations'}</h2><p>{zh ? '探索臺北河濱歷史爬蟲調查紀錄；並非即時目擊、目前分布或保證可觀察資訊。' : 'Explore Taipei riverfront historical reptile survey records. This is not a real-time sighting service, current distribution model, or viewing guarantee.'}</p></header>
+    <section className="filters bird-filters"><div className="filter-grid compact"><label>{zh ? '河域' : 'River area'}<select value={region} onChange={(event) => setRegion(event.target.value)}><option value="">{zh ? '全部' : 'All'}</option>{[...new Set(records.map((record) => record.region))].map((value) => <option key={value}>{value}</option>)}</select></label><label>{zh ? '科' : 'Family'}<select value={family} onChange={(event) => setFamily(event.target.value)}><option value="">{zh ? '全部' : 'All'}</option>{[...new Set(records.map((record) => record.familyName))].map((value) => <option key={value}>{value}</option>)}</select></label><label>{zh ? '月份' : 'Month'}<select value={month} onChange={(event) => setMonth(event.target.value)}><option value="">{zh ? '全部' : 'All'}</option>{Array.from({ length: 12 }, (_, index) => String(index + 1)).map((value) => <option key={value}>{value}</option>)}</select></label></div><div className="toggles"><label><input type="checkbox" checked={endemic} onChange={(event) => setEndemic(event.target.checked)} />{zh ? '特有分類' : 'Endemic taxa'}</label><label><input type="checkbox" checked={alien} onChange={(event) => setAlien(event.target.checked)} />{zh ? '外來種標記' : 'Alien species'}</label><button className="primary-button" onClick={exportCsv}>{zh ? '匯出篩選 CSV' : 'Export filtered CSV'}</button></div></section>
+    <p className="notice">{zh ? '此資料為 2012–2015 年河濱調查紀錄。不同河域、月份與時段的差異可能受調查路線、頻率、可及性與方法影響，不代表族群密度、棲地品質或現況。' : 'These 2012–2015 records may reflect survey routes, timing, accessibility, and methods; they do not represent population density, habitat quality, or current presence.'}</p><ResultLine count={filtered.length} language={language} />
+    <section className="summary-cards">{[[zh ? '觀察紀錄' : 'Observation records', summary.records], [zh ? '爬蟲物種' : 'Unique reptile species', summary.species], [zh ? '科別' : 'Families', summary.families], [zh ? '來源記錄個體總數' : 'Summed recorded individuals', summary.individuals], [zh ? '有效座標' : 'Valid coordinates', filtered.filter((record) => record.hasValidCoordinates).length], [zh ? '有效時間' : 'Valid observation times', filtered.filter((record) => record.observationTime).length]].map(([label, value]) => <div key={String(label)}><strong>{value}</strong><span>{label}</span></div>)}</section>
+    <div className="chart-grid"><BarList title={zh ? '各河域物種數（含紀錄數）' : 'Species richness by river area'} rows={summary.regions.map((row) => ({ label: `${row.label} · ${row.records}`, count: row.species }))} /><BarList title={zh ? '各月物種數' : 'Species richness by month'} rows={summary.months.map((row) => ({ label: row.label, count: row.species }))} /><BarList title={zh ? '資料中最常被記錄的物種' : 'Most frequently recorded in this dataset'} rows={summary.topByRecords.map((row) => ({ label: row.label, count: row.records }))} /><BarList title={zh ? '來源記錄個體數最多的物種' : 'Top species by summed source count'} rows={summary.topByCount.map((row) => ({ label: row.label, count: row.count }))} /></div>
+    <p className="notice subtle">{zh ? '記錄模式可能反映爬蟲活動，也可能反映調查時間與努力差異；觀察時間是記錄發生的時間，不是保證動物活動時間。' : 'Recorded patterns may reflect reptile activity as well as survey timing and effort. Observation time is when surveys recorded animals, not guaranteed activity.'}</p>
+    <div className="table-wrap"><table><thead><tr>{[zh ? 'ID' : 'ID', zh ? '類群' : 'Group', zh ? '科' : 'Family', zh ? '中文名' : 'Chinese name', zh ? '學名' : 'Scientific name', zh ? '期間' : 'Period', zh ? '時間' : 'Time', zh ? '河域' : 'Region', zh ? '數量' : 'Count', 'TWD97 X', 'TWD97 Y', 'Longitude', 'Latitude'].map((label) => <th key={label}>{label}</th>)}</tr></thead><tbody>{filtered.slice(0, 200).map((record) => <tr key={record.id} onClick={() => onSelect(record)}><td>{record.sourceSequenceNumber}</td><td>{record.group}</td><td>{record.familyName}</td><td>{record.commonNameZh}</td><td><em>{record.scientificName}</em></td><td>{record.observationPeriod}</td><td>{record.observationTime}</td><td>{record.region}</td><td>{record.observedCount}</td><td>{record.xTwd97Raw}</td><td>{record.yTwd97Raw}</td><td>{record.longitude}</td><td>{record.latitude}</td></tr>)}</tbody></table></div>
+  </>;
+}
+
 function MapBounds({ points }: { points: MapPoint[] }) {
   const map = useMap();
   useEffect(() => {
@@ -843,6 +869,7 @@ function GuideMap({
   animals,
   plants,
   biodiversity,
+  reptiles,
   areas,
   events,
   language,
@@ -851,22 +878,25 @@ function GuideMap({
   animals: ZooAnimal[];
   plants: ZooPlantRecord[];
   biodiversity: TaipeiBiodiversitySpeciesSurveyPointRecord[];
+  reptiles: RiverfrontReptileObservation[];
   areas: ZooExhibitArea[];
   events: ZooEvent[];
   language: Language;
   onSelect: (record: SelectedRecord) => void;
 }) {
   const t = getTranslation(language);
-  const [layers, setLayers] = useState({ animals: true, plants: true, biodiversity: false, exhibits: true, events: true });
+  const [layers, setLayers] = useState({ animals: true, plants: true, biodiversity: false, reptiles: false, exhibits: true, events: true });
   const animalPoints = validPoints(animals);
   const plantPoints = validPoints(plants);
   const biodiversityPoints = biodiversity.filter((record): record is TaipeiBiodiversitySpeciesSurveyPointRecord & MapPoint => record.longitude !== undefined && record.latitude !== undefined && record.isWithinTaipeiBounds);
+  const reptilePoints = reptiles.filter((record): record is RiverfrontReptileObservation & MapPoint => record.longitude !== null && record.latitude !== null && record.hasValidCoordinates);
   const areaPoints = validPoints(areas);
   const eventPoints = validPoints(events);
   const points = [
     ...(layers.animals ? animalPoints : []),
     ...(layers.plants ? plantPoints : []),
     ...(layers.biodiversity ? biodiversityPoints : []),
+    ...(layers.reptiles ? reptilePoints : []),
     ...(layers.exhibits ? areaPoints : []),
     ...(layers.events ? eventPoints : []),
   ];
@@ -876,6 +906,7 @@ function GuideMap({
         <label><input type="checkbox" checked={layers.animals} onChange={(event) => setLayers({ ...layers, animals: event.target.checked })} />{t.animals}</label>
         <label><input type="checkbox" checked={layers.plants} onChange={(event) => setLayers({ ...layers, plants: event.target.checked })} />{t.plantLayer}</label>
         <label><input type="checkbox" checked={layers.biodiversity} onChange={(event) => setLayers({ ...layers, biodiversity: event.target.checked })} />{t.biodiversitySurveyPointLayer}</label>
+        <label><input type="checkbox" checked={layers.reptiles} onChange={(event) => setLayers({ ...layers, reptiles: event.target.checked })} />{language === 'zh' ? '河濱爬蟲觀察' : 'Riverfront Reptiles'}</label>
         <label><input type="checkbox" checked={layers.exhibits} onChange={(event) => setLayers({ ...layers, exhibits: event.target.checked })} />{t.exhibitLayer}</label>
         <label><input type="checkbox" checked={layers.events} onChange={(event) => setLayers({ ...layers, events: event.target.checked })} />{t.eventLayer}</label>
       </div>
@@ -915,6 +946,7 @@ function GuideMap({
             }
             return <Marker key={first.id} position={[first.latitude, first.longitude]} icon={mapIcon('biodiversity')}><Popup><div className="popup-content"><strong>{first.speciesName}</strong><span>{speciesClassGroupLabel(first.speciesClassGroup, language)} · {first.observationCount ?? t.unknown}</span><span>{first.surveyDate} · {first.surveyMethod}</span><span>{first.coordinateUncertaintyRaw}</span><span>{t.biodiversityPopupNotice}</span><button onClick={() => onSelect(first)}>{t.viewDetails}</button></div></Popup></Marker>;
           })}
+          {layers.reptiles && reptilePoints.map((record) => <CircleMarker key={record.id} center={[record.latitude, record.longitude]} radius={7} pathOptions={{ color: '#3b4a25', fillColor: '#8b9c56', fillOpacity: 0.8, weight: 2 }}><Popup><div className="popup-content"><strong>{record.commonNameZh}</strong><span>{record.scientificName}</span><span>{record.familyName} · {record.region}</span><span>{record.observationPeriod} {record.observationTime ?? ''}</span><span>Historical survey record</span><button onClick={() => onSelect(record)}>{t.viewDetails}</button></div></Popup></CircleMarker>)}
           {layers.events && clusterEvents(events).map((cluster) => {
             const first = cluster[0];
             if (cluster.length > 1) {
@@ -1181,6 +1213,9 @@ function DetailPanel({
       </aside>
     );
   }
+  if ('module' in record && record.module === 'riverfront_reptile_observations') {
+    return <aside className="detail-panel" aria-label={record.commonNameZh}><button className="icon-button close" onClick={onClose} aria-label="Close"><X size={20} /></button><p className="eyebrow">Historical riverfront observation</p><h2>{record.commonNameZh}</h2><p className="latin">{record.scientificName}</p><dl><DetailRow label="Group" value={record.group} /><DetailRow label="Family" value={record.familyName} /><DetailRow label="Observation period" value={record.observationPeriod ?? undefined} /><DetailRow label="Time" value={record.observationTime ?? undefined} /><DetailRow label="River area" value={record.region} /><DetailRow label="Recorded individuals" value={record.observedCount?.toString()} /><DetailRow label="TWD97" value={`${record.xTwd97Raw}, ${record.yTwd97Raw}`} /><DetailRow label="WGS84" value={record.longitude !== null && record.latitude !== null ? `${record.latitude}, ${record.longitude}` : undefined} /></dl><p className="notice subtle">Historical survey record only. Keep an appropriate distance; do not touch, feed, capture, or disturb wildlife.</p></aside>;
+  }
   const animal = record as ZooAnimal;
   const topicUrl = getOfficialTopicPageUrl(animal);
   return (
@@ -1209,7 +1244,7 @@ function Footer({ language }: { language: Language }) {
 }
 
 export default function App() {
-  const { animals, plants, biodiversity, birds, exhibitAreas, events, summary } = useZooGuideData();
+  const { animals, plants, biodiversity, birds, reptiles, exhibitAreas, events, summary } = useZooGuideData();
   const [language, setLanguage] = useLanguage();
   const [activeTab, setActiveTab] = useState<Tab>('animals');
   const [search, setSearch] = useState('');
@@ -1231,9 +1266,10 @@ export default function App() {
         {activeTab === 'plants' && <PlantGuide plants={plants} search={search} language={language} onSelect={setSelected} />}
         {activeTab === 'biodiversity' && <BiodiversityGuide records={biodiversity} search={search} language={language} onSelect={setSelected} />}
         {activeTab === 'birds' && <RiverfrontBirdGuide records={birds} search={search} language={language} onSelect={setSelected} />}
+        {activeTab === 'reptiles' && <RiverfrontReptileGuide records={reptiles} search={search} language={language} onSelect={setSelected} />}
         {activeTab === 'exhibits' && <ExhibitGuide areas={exhibitAreas} animals={animals} search={search} language={language} onSelect={setSelected} />}
         {activeTab === 'events' && <EventGuide events={events} search={search} language={language} onSelect={setSelected} />}
-        {activeTab === 'map' && <GuideMap animals={filterAnimals(animals, filters)} plants={plants} biodiversity={biodiversity} areas={exhibitAreas} events={events} language={language} onSelect={setSelected} />}
+        {activeTab === 'map' && <GuideMap animals={filterAnimals(animals, filters)} plants={plants} biodiversity={biodiversity} reptiles={reptiles} areas={exhibitAreas} events={events} language={language} onSelect={setSelected} />}
         {activeTab === 'overview' && <Overview animals={animals} plants={plants} biodiversity={biodiversity} birds={birds} areas={exhibitAreas} events={events} summary={summary} language={language} />}
         {activeTab === 'notes' && <DataNotes language={language} />}
       </main>

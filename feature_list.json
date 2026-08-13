@@ -95,6 +95,14 @@
       "dependencies": ["feat-011"],
       "status": "done",
       "evidence": "Official CSV converted to 11,789 historical records, 108 species, 40 source families, 3 regions, 39,817 source-recorded individuals, and 11,789 validated WGS84 coordinates. npm run build passed."
+    },
+    {
+      "id": "feat-013",
+      "name": "Riverfront reptile observation explorer",
+      "description": "Separate historical Taipei riverfront reptile records with static TWD97-to-WGS84 conversion, discovery filters, insights, map layer, exports, and source-field preservation.",
+      "dependencies": ["feat-012"],
+      "status": "done",
+      "evidence": "Converted 357 official records into local JSON and GeoJSON, including 11 species, 8 families, 3 regions, 589 source-recorded individuals, and validated WGS84 coordinates. npm test and npm run build passed."
     }
   ]
 }

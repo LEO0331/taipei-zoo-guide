@@ -2,7 +2,7 @@
 
 ## Current Objective
 
-- Features `feat-011` and `feat-012` are implemented.
+- Features `feat-011`, `feat-012`, and `feat-013` are implemented.
 - The app now includes a separate Taipei biodiversity survey point module for urban ecology learning.
 - Feature `feat-012` adds a separate Riverfront Bird Observations module for historical 2012–2015 riverfront surveys.
 
@@ -13,6 +13,7 @@
 - Biodiversity raw input: `data/raw/taipei-biodiversity-species-survey-points/`
 - Frontend runtime reads only `public/data/*.json`.
 - Riverfront birds: `data/raw/riverfront-bird-observations.csv` is converted by `npm run data:convert:riverfront-birds` to `public/data/riverfront-bird-observations/`; source TWD97/TM2 is converted to WGS84 during conversion.
+- Riverfront reptiles: `data/raw/riverfront-reptile-observations.csv` is converted by `npm run data:convert:riverfront-reptiles` to `public/data/riverfront-reptile-observations/`; it preserves source taxonomy/date/time fields and converts TWD97/TM2 to WGS84 during conversion.
 
 ## Verification Evidence
 

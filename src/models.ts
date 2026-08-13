@@ -1,4 +1,4 @@
-export type ZooGuideModule = 'animals' | 'plants' | 'exhibit_areas' | 'events' | 'taipei_biodiversity_species_survey_points' | 'riverfront_bird_observations';
+export type ZooGuideModule = 'animals' | 'plants' | 'exhibit_areas' | 'events' | 'taipei_biodiversity_species_survey_points' | 'riverfront_bird_observations' | 'riverfront_reptile_observations';
 
 export type RiverfrontBirdObservation = {
   id: string; module: 'riverfront_bird_observations'; familyName: string; scientificName: string; commonNameZh: string;
@@ -9,6 +9,17 @@ export type RiverfrontBirdObservation = {
   year: number | null; month: number | null; day: number | null; observationPeriod: string | null; datePrecision: 'day' | 'month' | 'unknown';
   regionRaw: string; region: string; xTwd97Raw: string; yTwd97Raw: string; xTwd97: number | null; yTwd97: number | null;
   longitude: number | null; latitude: number | null; hasValidCoordinates: boolean; observedCountRaw: string; observedCount: number | null; surveyorRaw: string;
+};
+
+export type RiverfrontReptileObservation = {
+  id: string; module: 'riverfront_reptile_observations'; sourceSequenceNumber: string;
+  groupRaw: string; group: string; familyName: string; scientificName: string; commonNameZh: string;
+  endemicRaw: string; endemicType: 'endemic_species' | 'endemic_subspecies' | 'none' | 'unknown';
+  alienRaw: string; isAlienSpecies: boolean | null; year: number | null; month: number | null; day: number | null;
+  timeRaw: string; observationTime: string | null; observationPeriod: string | null; datePrecision: 'day' | 'month' | 'unknown';
+  regionRaw: string; region: string; xTwd97Raw: string; yTwd97Raw: string; xTwd97: number | null; yTwd97: number | null;
+  longitude: number | null; latitude: number | null; hasValidCoordinates: boolean; observedCountRaw: string; observedCount: number | null;
+  sourceRow: Record<string, string>;
 };
 
 export type CoordinateStatus = 'valid' | 'missing' | 'outlier' | 'unparsed';
@@ -379,6 +390,9 @@ export type ZooGuideSummary = {
   riverfrontBirdObservationCount?: number;
   riverfrontBirdSpeciesCount?: number;
   riverfrontBirdIndividualCount?: number;
+  riverfrontReptileObservationCount?: number;
+  riverfrontReptileSpeciesCount?: number;
+  riverfrontReptileIndividualCount?: number;
   exhibitAreaCount: number;
   exhibitAreaCategoryCount: number;
   eventCount: number;
