@@ -78,6 +78,10 @@ GITHUB_PAGES=true npm run build
 
 On Bash-capable systems, `./init.sh` is the standard full verification path.
 
+## Runtime performance
+
+Datasets load on demand by tab. The initial visit loads the Animal Guide only; large biodiversity and riverfront observation files load when their corresponding section is opened. Map-only historical wildlife layers load when enabled. The service worker uses network-first data caching with an offline fallback, so returning visitors receive updated generated data when online without downloading all records during installation.
+
 ## Project layout
 
 - `src/` — React app, models, utilities, and unit tests.
@@ -89,4 +93,3 @@ On Bash-capable systems, `./init.sh` is the standard full verification path.
 ## Licensing and media
 
 Taipei Zoo dataset open-license application is mainly limited to text. This project does not download, re-host, transform, cache, embed, or redistribute dataset images, audio, or video; multimedia remains an external source reference.
-

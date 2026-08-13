@@ -103,6 +103,14 @@
       "dependencies": ["feat-012"],
       "status": "done",
       "evidence": "Converted 357 official records into local JSON and GeoJSON, including 11 species, 8 families, 3 regions, 589 source-recorded individuals, and validated WGS84 coordinates. npm test and npm run build passed."
+    },
+    {
+      "id": "feat-014",
+      "name": "Responsive grouped navigation",
+      "description": "Replace the long flat tab strip with four top-level destination groups and an adaptive, compact second-level section row.",
+      "dependencies": ["feat-009", "feat-011", "feat-012", "feat-013"],
+      "status": "done",
+      "evidence": "At 390px, four destination groups and all current sub-tabs fit without horizontal overflow. Group switching was checked in-browser; npm test (21 tests), npm run build, and GITHUB_PAGES=true npm run build passed."
     }
   ]
 }

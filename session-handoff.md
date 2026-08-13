@@ -14,6 +14,8 @@
 - Frontend runtime reads only `public/data/*.json`.
 - Riverfront birds: `data/raw/riverfront-bird-observations.csv` is converted by `npm run data:convert:riverfront-birds` to `public/data/riverfront-bird-observations/`; source TWD97/TM2 is converted to WGS84 during conversion.
 - Riverfront reptiles: `data/raw/riverfront-reptile-observations.csv` is converted by `npm run data:convert:riverfront-reptiles` to `public/data/riverfront-reptile-observations/`; it preserves source taxonomy/date/time fields and converts TWD97/TM2 to WGS84 during conversion.
+- Runtime performance: `useZooGuideData` lazily loads datasets for the active tab. The map loads its default small layers on entry and requests biodiversity/reptile data only when those map layers are enabled. The service worker is network-first for `/data/` with offline fallback.
+- Navigation: the primary row has four destination groups (Explore Zoo, Nature & Wildlife, Plan Your Visit, Data & Notes). Selecting one opens a context row of two or three tabs. On mobile the current row uses an equal-width grid so no section tab requires horizontal scrolling.
 
 ## Verification Evidence
 
@@ -28,6 +30,9 @@
 | GitHub Pages build | Passed |
 | Browser QA | Biodiversity tab, bounded table, detail panel, clustered map layer, and no horizontal overflow passed |
 | Final `./init.sh` | Passed with bundled Node 24 |
+| Responsive grouped navigation | 390px and desktop browser checks passed; Nature & Wildlife exposes biodiversity, bird, and reptile sub-tabs |
+| Latest unit tests | 4 files, 21 tests passed |
+| Latest local and Pages builds | Passed |
 
 ## Decisions
 

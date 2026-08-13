@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { CircleMarker, MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import {
@@ -48,6 +48,8 @@ import { buildTaipeiBiodiversitySpeciesSurveyPointSummary, buildZooGuideSummary,
 import { assetPath } from './utils/assets';
 
 type Tab = 'animals' | 'plants' | 'biodiversity' | 'birds' | 'reptiles' | 'exhibits' | 'events' | 'map' | 'overview' | 'notes';
+type NavigationGroup = 'zoo' | 'nature' | 'visit' | 'data';
+type DatasetKey = 'animals' | 'plants' | 'biodiversity' | 'birds' | 'reptiles' | 'exhibits' | 'events';
 type SelectedRecord = ZooAnimal | ZooPlantRecord | TaipeiBiodiversitySpeciesSurveyPointRecord | ZooExhibitArea | ZooEvent | RiverfrontBirdObservation | RiverfrontReptileObservation;
 type MapPoint = { id: string; latitude: number; longitude: number };
 
@@ -118,7 +120,33 @@ async function loadJson<T>(path: string, fallback: T): Promise<T> {
   return response.ok ? (response.json() as Promise<T>) : fallback;
 }
 
-function useZooGuideData() {
+const tabDatasets: Record<Tab, DatasetKey[]> = {
+  animals: ['animals'],
+  plants: ['plants'],
+  biodiversity: ['biodiversity'],
+  birds: ['birds'],
+  reptiles: ['reptiles'],
+  exhibits: ['animals', 'exhibits'],
+  events: ['events'],
+  map: ['animals', 'plants', 'exhibits', 'events'],
+  overview: ['animals', 'plants', 'biodiversity', 'birds', 'reptiles', 'exhibits', 'events'],
+  notes: [],
+};
+
+const navigationGroups: Array<{
+  id: NavigationGroup;
+  labelZh: string;
+  labelEn: string;
+  Icon: typeof LayoutList;
+  tabs: Tab[];
+}> = [
+  { id: 'zoo', labelZh: '探索動物園', labelEn: 'Explore Zoo', Icon: LayoutList, tabs: ['animals', 'plants', 'exhibits'] },
+  { id: 'nature', labelZh: '自然與野生動物', labelEn: 'Nature & Wildlife', Icon: Globe2, tabs: ['biodiversity', 'birds', 'reptiles'] },
+  { id: 'visit', labelZh: '規劃參觀', labelEn: 'Plan Your Visit', Icon: MapPinned, tabs: ['map', 'events'] },
+  { id: 'data', labelZh: '資料與說明', labelEn: 'Data & Notes', Icon: BarChart3, tabs: ['overview', 'notes'] },
+];
+
+function useZooGuideData(activeTab: Tab) {
   const [animals, setAnimals] = useState<ZooAnimal[]>([]);
   const [plants, setPlants] = useState<ZooPlantRecord[]>([]);
   const [biodiversity, setBiodiversity] = useState<TaipeiBiodiversitySpeciesSurveyPointRecord[]>([]);
@@ -126,39 +154,38 @@ function useZooGuideData() {
   const [reptiles, setReptiles] = useState<RiverfrontReptileObservation[]>([]);
   const [exhibitAreas, setExhibitAreas] = useState<ZooExhibitArea[]>([]);
   const [events, setEvents] = useState<ZooEvent[]>([]);
+  const [loading, setLoading] = useState<DatasetKey[]>([]);
+  const loaded = useRef(new Set<DatasetKey>());
+  const requests = useRef(new Map<DatasetKey, Promise<void>>());
+
+  const loadDataset = (dataset: DatasetKey): Promise<void> => {
+    if (loaded.current.has(dataset)) return Promise.resolve();
+    const pending = requests.current.get(dataset);
+    if (pending) return pending;
+    setLoading((current) => current.includes(dataset) ? current : [...current, dataset]);
+    const request = (async () => {
+      if (dataset === 'animals') setAnimals(await loadJson<ZooAnimal[]>('data/zoo-animals.json', []));
+      if (dataset === 'plants') setPlants(await loadJson<ZooPlantRecord[]>('data/zoo-plants.json', []));
+      if (dataset === 'biodiversity') setBiodiversity(await loadJson<TaipeiBiodiversitySpeciesSurveyPointRecord[]>('data/taipei-biodiversity-species-survey-points.json', []));
+      if (dataset === 'birds') setBirds(await loadJson<RiverfrontBirdObservation[]>('data/riverfront-bird-observations/observations.json', []));
+      if (dataset === 'reptiles') setReptiles(await loadJson<RiverfrontReptileObservation[]>('data/riverfront-reptile-observations/observations.json', []));
+      if (dataset === 'exhibits') setExhibitAreas(await loadJson<ZooExhibitArea[]>('data/zoo-exhibit-areas.json', []));
+      if (dataset === 'events') setEvents((await loadJson<ZooEvent[]>('data/zoo-events.json', [])).map((event) => ({ ...event, eventStatus: getZooEventStatus(event) })));
+      loaded.current.add(dataset);
+    })().finally(() => {
+      requests.current.delete(dataset);
+      setLoading((current) => current.filter((item) => item !== dataset));
+    });
+    requests.current.set(dataset, request);
+    return request;
+  };
 
   useEffect(() => {
-    Promise.all([
-      loadJson<ZooAnimal[]>('data/zoo-animals.json', []),
-      loadJson<ZooPlantRecord[]>('data/zoo-plants.json', []),
-      loadJson<TaipeiBiodiversitySpeciesSurveyPointRecord[]>('data/taipei-biodiversity-species-survey-points.json', []),
-      loadJson<RiverfrontBirdObservation[]>('data/riverfront-bird-observations/observations.json', []),
-      loadJson<RiverfrontReptileObservation[]>('data/riverfront-reptile-observations/observations.json', []),
-      loadJson<ZooExhibitArea[]>('data/zoo-exhibit-areas.json', []),
-      loadJson<ZooEvent[]>('data/zoo-events.json', []),
-    ])
-      .then(([animalRows, plantRows, biodiversityRows, birdRows, reptileRows, areaRows, eventRows]) => {
-        setAnimals(animalRows);
-        setPlants(plantRows);
-        setBiodiversity(biodiversityRows);
-        setBirds(birdRows);
-        setReptiles(reptileRows);
-        setExhibitAreas(areaRows);
-        setEvents(eventRows.map((event) => ({ ...event, eventStatus: getZooEventStatus(event) })));
-      })
-      .catch(() => {
-        setAnimals([]);
-        setPlants([]);
-        setBiodiversity([]);
-        setBirds([]);
-        setReptiles([]);
-        setExhibitAreas([]);
-        setEvents([]);
-      });
-  }, []);
+    void Promise.all(tabDatasets[activeTab].map(loadDataset));
+  }, [activeTab]);
 
   const summary = useMemo(() => buildZooGuideSummary(animals, exhibitAreas, events, plants, biodiversity, birds, reptiles), [animals, exhibitAreas, events, plants, biodiversity, birds, reptiles]);
-  return { animals, plants, biodiversity, birds, reptiles, exhibitAreas, events, summary };
+  return { animals, plants, biodiversity, birds, reptiles, exhibitAreas, events, summary, loading, loadDataset };
 }
 
 function LanguageToggle({ language, setLanguage }: { language: Language; setLanguage: (value: Language) => void }) {
@@ -175,7 +202,7 @@ function LanguageToggle({ language, setLanguage }: { language: Language; setLang
   );
 }
 
-function MainTabs({ activeTab, setActiveTab, language }: { activeTab: Tab; setActiveTab: (tab: Tab) => void; language: Language }) {
+function GroupedNavigation({ activeTab, setActiveTab, language }: { activeTab: Tab; setActiveTab: (tab: Tab) => void; language: Language }) {
   const t = getTranslation(language);
   const labels = {
     animals: t.animalGuide,
@@ -189,9 +216,23 @@ function MainTabs({ activeTab, setActiveTab, language }: { activeTab: Tab; setAc
     overview: t.dataOverview,
     notes: t.dataNotes,
   };
+  const activeGroup = navigationGroups.find((group) => group.tabs.includes(activeTab)) ?? navigationGroups[0];
   return (
-    <nav className="tabs" aria-label="Main sections">
-      {(Object.keys(labels) as Tab[]).map((tab) => {
+    <nav className="navigation" aria-label={language === 'zh' ? '主要導覽' : 'Primary navigation'}>
+      <div className="primary-nav">
+        {navigationGroups.map((group) => {
+          const Icon = group.Icon;
+          const isActive = group.id === activeGroup.id;
+          return <button key={group.id} className={isActive ? 'active' : ''} onClick={() => setActiveTab(group.tabs[0])} aria-current={isActive ? 'page' : undefined}>
+            <Icon size={18} /><span>{language === 'zh' ? group.labelZh : group.labelEn}</span>
+          </button>;
+        })}
+      </div>
+      <div
+        className={`tabs secondary-tabs tab-count-${activeGroup.tabs.length}`}
+        aria-label={language === 'zh' ? `${activeGroup.labelZh} 分頁` : `${activeGroup.labelEn} sections`}
+      >
+      {activeGroup.tabs.map((tab) => {
         const Icon = tabIcons[tab];
         return (
           <button key={tab} className={activeTab === tab ? 'active' : ''} onClick={() => setActiveTab(tab)}>
@@ -200,6 +241,7 @@ function MainTabs({ activeTab, setActiveTab, language }: { activeTab: Tab; setAc
           </button>
         );
       })}
+      </div>
     </nav>
   );
 }
@@ -226,6 +268,10 @@ function ResultLine({ count, language }: { count: number; language: Language }) 
 
 function EmptyState({ language }: { language: Language }) {
   return <p className="empty-state">{getTranslation(language).noRecords}</p>;
+}
+
+function LoadingState({ language }: { language: Language }) {
+  return <p className="empty-state" role="status">{language === 'zh' ? '正在載入此分頁資料…' : 'Loading this section’s data…'}</p>;
 }
 
 function AnimalFilters({
@@ -873,6 +919,7 @@ function GuideMap({
   areas,
   events,
   language,
+  onLoadDataset,
   onSelect,
 }: {
   animals: ZooAnimal[];
@@ -882,6 +929,7 @@ function GuideMap({
   areas: ZooExhibitArea[];
   events: ZooEvent[];
   language: Language;
+  onLoadDataset: (dataset: DatasetKey) => Promise<void>;
   onSelect: (record: SelectedRecord) => void;
 }) {
   const t = getTranslation(language);
@@ -892,6 +940,10 @@ function GuideMap({
   const reptilePoints = reptiles.filter((record): record is RiverfrontReptileObservation & MapPoint => record.longitude !== null && record.latitude !== null && record.hasValidCoordinates);
   const areaPoints = validPoints(areas);
   const eventPoints = validPoints(events);
+  const toggleLayer = (layer: keyof typeof layers, dataset?: DatasetKey) => {
+    setLayers((current) => ({ ...current, [layer]: !current[layer] }));
+    if (dataset) void onLoadDataset(dataset);
+  };
   const points = [
     ...(layers.animals ? animalPoints : []),
     ...(layers.plants ? plantPoints : []),
@@ -903,12 +955,12 @@ function GuideMap({
   return (
     <section className="map-section">
       <div className="layer-toggles">
-        <label><input type="checkbox" checked={layers.animals} onChange={(event) => setLayers({ ...layers, animals: event.target.checked })} />{t.animals}</label>
-        <label><input type="checkbox" checked={layers.plants} onChange={(event) => setLayers({ ...layers, plants: event.target.checked })} />{t.plantLayer}</label>
-        <label><input type="checkbox" checked={layers.biodiversity} onChange={(event) => setLayers({ ...layers, biodiversity: event.target.checked })} />{t.biodiversitySurveyPointLayer}</label>
-        <label><input type="checkbox" checked={layers.reptiles} onChange={(event) => setLayers({ ...layers, reptiles: event.target.checked })} />{language === 'zh' ? '河濱爬蟲觀察' : 'Riverfront Reptiles'}</label>
-        <label><input type="checkbox" checked={layers.exhibits} onChange={(event) => setLayers({ ...layers, exhibits: event.target.checked })} />{t.exhibitLayer}</label>
-        <label><input type="checkbox" checked={layers.events} onChange={(event) => setLayers({ ...layers, events: event.target.checked })} />{t.eventLayer}</label>
+        <label><input type="checkbox" checked={layers.animals} onChange={() => toggleLayer('animals')} />{t.animals}</label>
+        <label><input type="checkbox" checked={layers.plants} onChange={() => toggleLayer('plants')} />{t.plantLayer}</label>
+        <label><input type="checkbox" checked={layers.biodiversity} onChange={() => toggleLayer('biodiversity', 'biodiversity')} />{t.biodiversitySurveyPointLayer}</label>
+        <label><input type="checkbox" checked={layers.reptiles} onChange={() => toggleLayer('reptiles', 'reptiles')} />{language === 'zh' ? '河濱爬蟲觀察' : 'Riverfront Reptiles'}</label>
+        <label><input type="checkbox" checked={layers.exhibits} onChange={() => toggleLayer('exhibits')} />{t.exhibitLayer}</label>
+        <label><input type="checkbox" checked={layers.events} onChange={() => toggleLayer('events')} />{t.eventLayer}</label>
       </div>
       <div className="map-shell">
         <MapContainer center={[24.9985, 121.582]} zoom={16} minZoom={14} scrollWheelZoom className="map">
@@ -1244,14 +1296,15 @@ function Footer({ language }: { language: Language }) {
 }
 
 export default function App() {
-  const { animals, plants, biodiversity, birds, reptiles, exhibitAreas, events, summary } = useZooGuideData();
   const [language, setLanguage] = useLanguage();
   const [activeTab, setActiveTab] = useState<Tab>('animals');
+  const { animals, plants, biodiversity, birds, reptiles, exhibitAreas, events, summary, loading, loadDataset } = useZooGuideData(activeTab);
   const [search, setSearch] = useState('');
   const [animalFilters, setAnimalFilters] = useState<Filters>(defaultFilters);
   const [selected, setSelected] = useState<SelectedRecord | null>(null);
   const t = getTranslation(language);
   const filters = { ...animalFilters, search };
+  const isTabLoading = tabDatasets[activeTab].some((dataset) => loading.includes(dataset));
 
   return (
     <div className="app">
@@ -1260,18 +1313,20 @@ export default function App() {
         <LanguageToggle language={language} setLanguage={setLanguage} />
       </header>
       <main>
-        <MainTabs activeTab={activeTab} setActiveTab={setActiveTab} language={language} />
+        <GroupedNavigation activeTab={activeTab} setActiveTab={setActiveTab} language={language} />
         {!['overview', 'notes'].includes(activeTab) && <GlobalSearch value={search} onChange={setSearch} language={language} />}
-        {activeTab === 'animals' && <AnimalGuide animals={animals} filters={filters} setFilters={setAnimalFilters} language={language} onSelect={setSelected} />}
-        {activeTab === 'plants' && <PlantGuide plants={plants} search={search} language={language} onSelect={setSelected} />}
-        {activeTab === 'biodiversity' && <BiodiversityGuide records={biodiversity} search={search} language={language} onSelect={setSelected} />}
-        {activeTab === 'birds' && <RiverfrontBirdGuide records={birds} search={search} language={language} onSelect={setSelected} />}
-        {activeTab === 'reptiles' && <RiverfrontReptileGuide records={reptiles} search={search} language={language} onSelect={setSelected} />}
-        {activeTab === 'exhibits' && <ExhibitGuide areas={exhibitAreas} animals={animals} search={search} language={language} onSelect={setSelected} />}
-        {activeTab === 'events' && <EventGuide events={events} search={search} language={language} onSelect={setSelected} />}
-        {activeTab === 'map' && <GuideMap animals={filterAnimals(animals, filters)} plants={plants} biodiversity={biodiversity} reptiles={reptiles} areas={exhibitAreas} events={events} language={language} onSelect={setSelected} />}
-        {activeTab === 'overview' && <Overview animals={animals} plants={plants} biodiversity={biodiversity} birds={birds} areas={exhibitAreas} events={events} summary={summary} language={language} />}
-        {activeTab === 'notes' && <DataNotes language={language} />}
+        {isTabLoading ? <LoadingState language={language} /> : <>
+          {activeTab === 'animals' && <AnimalGuide animals={animals} filters={filters} setFilters={setAnimalFilters} language={language} onSelect={setSelected} />}
+          {activeTab === 'plants' && <PlantGuide plants={plants} search={search} language={language} onSelect={setSelected} />}
+          {activeTab === 'biodiversity' && <BiodiversityGuide records={biodiversity} search={search} language={language} onSelect={setSelected} />}
+          {activeTab === 'birds' && <RiverfrontBirdGuide records={birds} search={search} language={language} onSelect={setSelected} />}
+          {activeTab === 'reptiles' && <RiverfrontReptileGuide records={reptiles} search={search} language={language} onSelect={setSelected} />}
+          {activeTab === 'exhibits' && <ExhibitGuide areas={exhibitAreas} animals={animals} search={search} language={language} onSelect={setSelected} />}
+          {activeTab === 'events' && <EventGuide events={events} search={search} language={language} onSelect={setSelected} />}
+          {activeTab === 'map' && <GuideMap animals={filterAnimals(animals, filters)} plants={plants} biodiversity={biodiversity} reptiles={reptiles} areas={exhibitAreas} events={events} language={language} onLoadDataset={loadDataset} onSelect={setSelected} />}
+          {activeTab === 'overview' && <Overview animals={animals} plants={plants} biodiversity={biodiversity} birds={birds} areas={exhibitAreas} events={events} summary={summary} language={language} />}
+          {activeTab === 'notes' && <DataNotes language={language} />}
+        </>}
       </main>
       <Footer language={language} />
       {selected && <DetailPanel record={selected} animals={animals} language={language} onClose={() => setSelected(null)} />}

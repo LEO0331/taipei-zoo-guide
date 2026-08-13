@@ -12,6 +12,8 @@
 - [x] Added bird, region, month, residency, endemic, and alien filters; dynamic regional and seasonal insights; a table; and filtered CSV export.
 - [x] Completed cleanup and review fixes: status-token parsing, combined-summary coverage, cross-platform test discovery, readable bird pipeline logic, and regression tests.
 - [x] Added Riverfront Reptile Observations as a separate historical ecology module, including static CSV conversion, EPSG:3826-to-WGS84 conversion, discovery filters, insights, CSV export, detail drawer, and map layer.
+- [x] Improved tab responsiveness: data now loads on demand by active tab, map-only wildlife layers load on enable, and the service worker no longer precaches bulk datasets.
+- [x] Replaced the long flat tab strip with responsive grouped navigation: Explore Zoo, Nature & Wildlife, Plan Your Visit, and Data & Notes. Each group exposes at most three context-specific sub-tabs.
 
 - [x] Added `臺北市生物多樣性` as a separate citywide biodiversity survey point module.
 - [x] Fetched 2017-2024 annual CSV resources from Taipei Open Data.
@@ -39,6 +41,9 @@
 - [x] `GITHUB_PAGES=true npm run build`: passed.
 - [x] Browser QA: Biodiversity tab, bounded table, detail panel, clustered map layer, and no horizontal overflow passed.
 - [x] `./init.sh`: passed with bundled Node 24, including install, conversion, tests, builds, Pages build, and audit.
+- [x] Responsive grouped-navigation QA: at 390px, four primary groups and all current sub-tabs fit without horizontal overflow; desktop layout and Nature & Wildlife group switching passed.
+- [x] `npm test`: 4 files, 21 tests passed.
+- [x] `npm run build` and `GITHUB_PAGES=true npm run build`: passed.
 
 ## Remaining Risk
 
