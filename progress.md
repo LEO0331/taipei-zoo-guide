@@ -16,6 +16,8 @@
 - [x] Replaced the long flat tab strip with responsive grouped navigation: Explore Zoo, Nature & Wildlife, Plan Your Visit, and Data & Notes. Each group exposes at most three context-specific sub-tabs.
 - [x] Removed the 113 MB biodiversity raw-record download from the default tab and overview path. Both now use the existing compact summary; detailed search, filters, and rows are available only after an explicit load action.
 - [x] Prevented blank post-deployment loads: service-worker navigations are network-first, while new workers skip waiting and claim clients immediately so cached HTML cannot keep referencing retired hashed bundles.
+- [x] Kept the `台北動物園導覽` hero title on one line with responsive sizing (`white-space: nowrap` plus a viewport-aware mobile font size).
+- [x] Replaced CARTO basemap tiles with OpenStreetMap tiles to remove the API-key-required watermark while retaining required attribution.
 
 - [x] Added `臺北市生物多樣性` as a separate citywide biodiversity survey point module.
 - [x] Fetched 2017-2024 annual CSV resources from Taipei Open Data.

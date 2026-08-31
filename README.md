@@ -20,6 +20,7 @@ This is an educational public-data explorer, not a real-time wildlife service.
 - Record count, distinct species, and summed source-recorded individuals are different measures. Do not combine them into a biodiversity score or rank areas definitively.
 - “Endemic” is not a conservation-status determination; “alien” is not automatically invasive or harmful.
 - Map points are source-record coordinates. Do not use them to track, capture, feed, handle, relocate, or disturb wildlife.
+- The map base layer uses OpenStreetMap tiles and keeps the required contributor attribution visible. It does not require a commercial map API key.
 
 For data-backed product recommendations and open operational risks, read the [customer dashboard advisory](docs/customer-dashboard-advisory-2026-08-13.md).
 

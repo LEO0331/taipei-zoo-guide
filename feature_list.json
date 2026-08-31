@@ -110,7 +110,15 @@
       "description": "Replace the long flat tab strip with four top-level destination groups and an adaptive, compact second-level section row.",
       "dependencies": ["feat-009", "feat-011", "feat-012", "feat-013"],
       "status": "done",
-      "evidence": "At 390px, four destination groups and all current sub-tabs fit without horizontal overflow. Group switching was checked in-browser; biodiversity now loads its 10 KB summary by default and defers the 113 MB detailed record file until requested. npm test (21 tests), npm run build, and GITHUB_PAGES=true npm run build passed."
+      "evidence": "At 390px, four destination groups and all current sub-tabs fit without horizontal overflow. Group switching was checked in-browser; biodiversity now loads its 10 KB summary by default and defers the 113 MB detailed record file until requested. The hero title uses responsive no-wrap sizing. npm test (21 tests), npm run build, and GITHUB_PAGES=true npm run build passed."
+    },
+    {
+      "id": "feat-015",
+      "name": "API-key-free map basemap",
+      "description": "Use OpenStreetMap raster tiles with required attribution instead of CARTO tiles that display an API-key-required watermark.",
+      "dependencies": ["feat-001"],
+      "status": "done",
+      "evidence": "Map TileLayer now targets tile.openstreetmap.org and retains OpenStreetMap contributor attribution. Production build and diff checks passed."
     }
   ]
 }

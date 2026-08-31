@@ -59,10 +59,11 @@ button {
 
 .hero h1 {
   margin: 0.2rem 0 0.5rem;
-  font-size: 2.7rem;
+  font-size: min(2.7rem, 12vw);
   line-height: 0.98;
   letter-spacing: 0;
-  max-width: 11ch;
+  max-width: none;
+  white-space: nowrap;
 }
 
 .hero p {

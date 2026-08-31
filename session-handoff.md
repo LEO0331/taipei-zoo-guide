@@ -17,6 +17,8 @@
 - Runtime performance: `useZooGuideData` lazily loads datasets for the active tab. The map loads its default small layers on entry and requests biodiversity/reptile data only when those map layers are enabled. The service worker is network-first for navigations and `/data/` with offline fallback, cache-first for static assets, and immediately activates new versions to prevent stale HTML referencing retired bundles.
 - Biodiversity performance: the Biodiversity and Overview tabs load `taipei-biodiversity-species-survey-point-summary.json` first (about 10 KB). The 72,286-record `taipei-biodiversity-species-survey-points.json` file (about 113 MB) is only requested after the visitor selects **Load detailed records**; the map layer remains opt-in.
 - Navigation: the primary row has four destination groups (Explore Zoo, Nature & Wildlife, Plan Your Visit, Data & Notes). Selecting one opens a context row of two or three tabs. Through tablet widths, the context row uses equal-width buttons with centered icon-and-label groups; wide desktops use compact content-width tabs.
+- Hero title: `台北動物園導覽` is intentionally single-line. Its mobile font size scales with viewport width so the no-wrap treatment does not overflow narrow screens.
+- Map base layer: uses OpenStreetMap raster tiles with contributor attribution, avoiding the CARTO API-key-required watermark. Keep the attribution visible and review OpenStreetMap tile usage policy before scaling traffic.
 
 ## Verification Evidence
 
