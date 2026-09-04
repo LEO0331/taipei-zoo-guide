@@ -1,6 +1,10 @@
 # Browser Smoke Test
 
-Run this checklist before a public release after `npm run build` and `GITHUB_PAGES=true npm run build` succeed. Test at both a desktop viewport (at least 1280px wide) and a narrow viewport (390px wide).
+Automated Playwright coverage runs against a production preview at desktop and 390px mobile widths in CI. This checklist remains the manual release fallback, especially for browser-specific map rendering and offline navigation behavior that needs human confirmation.
+
+For a first local run, install Chromium with `npx playwright install chromium`.
+
+Run this checklist before a public release after `npm run build`, `GITHUB_PAGES=true npm run build`, and `npm run test:e2e` succeed.
 
 1. Open the Animal Guide and confirm the first destination group and its sub-tabs are visible without clipped labels.
 2. Switch language. Confirm primary and secondary navigation labels, biodiversity chart labels, riverfront table headers, and coordinate labels use the selected language.
@@ -15,4 +19,5 @@ Record the date, build commit, viewport sizes, and any failures in `progress.md`
 ## Latest recorded run
 
 - **2026-09-04, local desktop:** Passed grouped navigation, biodiversity summary, bird/reptile filter and table rendering, Overview comparison/totals, map layer controls, and OpenStreetMap attribution.
-- **390px responsive coverage:** Recorded in `progress.md` for grouped navigation; repeat this checklist at 390px for every release.
+- **2026-09-04, automated production preview:** Playwright passed 14 checks across desktop and 390px mobile viewports, covering navigation, language, lightweight biodiversity loading, riverfront tables, Overview, map controls/popup/attribution, and service-worker reload.
+- **Manual fallback:** Repeat this checklist for browser-specific map rendering and offline navigation before every release.

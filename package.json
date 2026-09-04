@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run --config vitest.config.ts",
+    "test:e2e": "npm run build && playwright test",
     "fetch:data": "tsx scripts/fetchZooAnimalData.ts",
     "data:fetch:exhibit-areas": "tsx scripts/fetchZooExhibitAreas.ts",
     "data:fetch:events": "tsx scripts/fetchZooEvents.ts",
@@ -30,6 +31,7 @@
     "react-leaflet": "^4.2.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@types/leaflet": "^1.9.16",
     "@types/node": "^22.10.2",
     "@types/react": "^18.3.18",

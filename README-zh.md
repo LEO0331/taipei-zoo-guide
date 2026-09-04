@@ -115,6 +115,13 @@ npm run dev
 GITHUB_PAGES=true npm run build
 ```
 
+以下指令會透過正式預覽執行瀏覽器 E2E 檢查：
+
+```bash
+npx playwright install chromium
+npm run test:e2e
+```
+
 在支援 Bash 的環境中，可執行 `./init.sh` 進行標準完整驗證。
 
 ## 執行效能
@@ -125,8 +132,9 @@ GITHUB_PAGES=true npm run build
 
 - Service Worker v6 對導覽與產生資料採網路優先，會立即啟用並清除舊版快取，避免發布後取得過期內容。
 - `npm audit --audit-level=moderate` 納入發布驗證，目前在此門檻沒有安全性通報。
-- 每次發布前，請依[瀏覽器冒煙測試](docs/browser-smoke-test.md)在桌面版與 390px 寬度完成檢查。
+- Playwright E2E 會在桌面版與 390px 寬度測試正式預覽；[瀏覽器冒煙測試](docs/browser-smoke-test.md)保留為人工發布備援流程。
 - 資料概覽包含受限的河濱生態比較，只並列歷史鳥類／爬蟲物種數；不可解讀為族群、棲地品質或目前目擊資訊的比較。
+- 目前沒有可重複執行之現況監測資料的預算，因此河濱野生動物內容維持為明確的歷史與教育用途。
 
 ## 專案結構
 

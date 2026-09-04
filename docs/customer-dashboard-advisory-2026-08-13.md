@@ -61,7 +61,7 @@ All figures below are derived from the checked-in, generated local data as of 20
 | Reptile totals in Overview | Resolved | Reptile record, species, and source-recorded-individual totals are separate Overview cards. |
 | Riverfront methodology disclosures | Resolved | Data Notes and the generic coordinate notice name both historical riverfront layers and their interpretation limits. |
 | Stale provenance literals | Resolved | Bird/reptile conversion scripts derive coverage from converted records and report the checked-in source file modification time instead of hard-coded coverage or update dates. |
-| Browser QA process | Resolved for the manual release workflow | A repeatable desktop/mobile [browser smoke-test checklist](browser-smoke-test.md) now covers navigation, filters, maps, exports, details, cache updates, and offline behavior; a current desktop run is recorded in the checklist and `progress.md`. Fully automated browser E2E remains a future dependency decision, not a release blocker. |
+| Browser QA process | Resolved | Playwright runs 14 production-preview checks across desktop and 390px mobile viewports in CI, retaining screenshots and traces on failure. The [browser smoke-test checklist](browser-smoke-test.md) remains the manual fallback for offline navigation and browser-specific map rendering. |
 
 ## What not to claim
 
@@ -74,6 +74,6 @@ All figures below are derived from the checked-in, generated local data as of 20
 ## 90-day sequence status (verified 2026-09-04)
 
 1. **Completed — service-worker data-release strategy and dependency advisories.** Service worker v6 is network-first for navigations and generated data, activates immediately, claims clients, and removes outdated caches. `npm audit --audit-level=moderate` is clean.
-2. **Completed — responsive/accessibility browser QA path.** [Browser smoke test](browser-smoke-test.md) is the release checklist. A current local desktop run verified grouped navigation, biodiversity summary loading, bird/reptile filters and tables, Overview, and map controls/attribution; earlier 390px checks are recorded in `progress.md`. Repeat the checklist at both widths before every release.
+2. **Completed — responsive/accessibility browser QA path.** Playwright runs 14 production-preview checks across desktop and 390px mobile viewports for navigation, language, lazy data loading, tables, Overview, map controls/popup/attribution, and service-worker reloads. [Browser smoke test](browser-smoke-test.md) remains the manual fallback for offline navigation and browser-specific map rendering.
 3. **Completed — bounded Riverfront Ecology comparison.** Overview now compares only bird and reptile species counts by shared river area and month, with an explicit methodology and detectability caveat.
-4. **Open decision — current, repeatable monitoring dataset.** Decide whether authority and budget exist. Until then, retain the dashboard’s historical-learning positioning and do not imply current wildlife presence.
+4. **Completed decision — no current monitoring budget.** There is no budget at this time for a current, repeatable monitoring dataset. Retain the dashboard’s historical-learning positioning and do not imply current wildlife presence; revisit only if funding and data-governance authority change.

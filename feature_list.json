@@ -35,10 +35,10 @@
     {
       "id": "feat-005",
       "name": "Visual browser QA",
-      "description": "Maintain a repeatable desktop and mobile browser smoke-test checklist for navigation, filters, maps, exports, details, cache updates, and offline behavior.",
+      "description": "Run Playwright E2E coverage against the production preview at desktop and 390px mobile widths, with a manual smoke-test fallback for navigation, filters, maps, exports, details, cache updates, and offline behavior.",
       "dependencies": ["feat-001"],
       "status": "done",
-      "evidence": "docs/browser-smoke-test.md provides a release-ready manual browser QA path. Automated E2E remains a future dependency decision; browser checks completed in prior release verification are recorded in progress.md."
+      "evidence": "Playwright E2E runs 14 checks against vite preview in desktop and 390px mobile projects, retains screenshots/traces on failure, and uploads failure artifacts in GitHub Actions. docs/browser-smoke-test.md remains the manual fallback."
     },
     {
       "id": "feat-006",
@@ -150,7 +150,7 @@
       "description": "Address remaining customer-advisory gaps without changing established guide flows: compare riverfront ecology responsibly, expose reptile totals, add historical-method notes, derive provenance metadata, and document browser smoke testing.",
       "dependencies": ["feat-011", "feat-012", "feat-013"],
       "status": "done",
-      "evidence": "New Riverfront Ecology utility/component tests, regenerated source-derived metadata, bilingual disclosures, Overview cards, browser smoke-test checklist, advisory resolution audit, and a 2026-09-04 desktop smoke run. Verification recorded in progress.md."
+      "evidence": "New Riverfront Ecology utility/component tests, regenerated source-derived metadata, bilingual disclosures, Overview cards, browser smoke-test checklist, advisory resolution audit, a 2026-09-04 desktop smoke run, and the documented decision to retain historical-learning positioning because no current-monitoring budget exists. Verification recorded in progress.md."
     }
   ]
 }

@@ -115,6 +115,13 @@ Run the GitHub Pages variant before release:
 GITHUB_PAGES=true npm run build
 ```
 
+Run browser E2E checks against a production preview:
+
+```bash
+npx playwright install chromium
+npm run test:e2e
+```
+
 On Bash-capable systems, `./init.sh` is the standard full verification path.
 
 ## Runtime performance
@@ -125,8 +132,9 @@ Datasets load on demand by tab. The initial visit loads the Animal Guide only; l
 
 - Service worker v6 refreshes navigations and generated data from the network first, activates immediately, and clears prior cache versions to avoid stale releases.
 - `npm audit --audit-level=moderate` is part of release verification and currently reports no advisories at that threshold.
-- Use the [browser smoke test](docs/browser-smoke-test.md) before release at desktop and 390px widths.
+- Playwright E2E runs the production preview at desktop and 390px widths; use the [browser smoke test](docs/browser-smoke-test.md) as the manual release fallback.
 - The Overview includes a bounded Riverfront Ecology comparison. It compares historical bird/reptile species counts only; it is not a population, habitat-quality, or current-sighting comparison.
+- There is currently no budget for a repeatable current-monitoring dataset, so riverfront wildlife content remains explicitly historical and educational.
 
 ## Project layout
 

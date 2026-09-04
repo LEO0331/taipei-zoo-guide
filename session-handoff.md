@@ -23,7 +23,8 @@
 - Riverfront observation tables: Bird and reptile tables use the shared `observation-table` class. Keep its wide minimum width and single-line headers so the existing `table-wrap` horizontal scroll remains the narrow-screen behavior; localize longitude and latitude as 經度／緯度 in Traditional Chinese. Table values display four decimal places, but map calculations and CSV exports intentionally retain source precision.
 - Architecture documentation: `README.md` and `README-zh.md` contain matching Mermaid diagrams. When changing the data pipeline, runtime loading, service-worker policy, or deployment, update both diagrams so the documented boundaries remain accurate.
 - Operational advisory remediation: `RiverfrontEcologyComparison` uses `buildRiverfrontEcologyComparison` to compare only bird/reptile species counts by shared region and month, with a visible detectability caveat. Overview now has separate reptile totals. Data Notes name riverfront historical-data limits. `docs/browser-smoke-test.md` provides the manual release checklist. The source conversion scripts derive coverage and `sourceFileModifiedAt` from their checked-in input; do not reintroduce literal freshness claims.
-- 90-day sequence: steps 1–3 are complete and documented in the customer advisory. The only open item is authority/budget for a current, repeatable monitoring dataset; retain historical-learning language until that decision changes.
+- 90-day sequence: all four items are complete and documented in the customer advisory. The current decision is that no budget exists for a repeatable monitoring dataset; retain historical-learning language and revisit only if funding and data-governance authority change.
+- E2E: `npm run test:e2e` first builds the standard production bundle, then runs Playwright through `vite preview`. CI installs Chromium, validates both build variants before E2E, uploads screenshots/traces on failure, then rebuilds the Pages artifact for deployment. Keep `docs/browser-smoke-test.md` for manual map/offline release checks.
 
 ## Verification Evidence
 
@@ -44,6 +45,7 @@
 | Biodiversity chart-label localization | 5 test files, 24 tests passed; local and Pages builds passed |
 | Operational-advisory remediation | `npm audit --audit-level=moderate` clean; 6 test files, 25 tests passed; local and Pages builds passed |
 | 90-day sequence validation | Current local desktop browser smoke run passed; repeat the documented 390px check before each release |
+| Automated browser E2E | 14 Playwright production-preview checks passed across desktop and 390px mobile; CI uploads screenshots/traces on failure |
 
 ## Decisions
 
