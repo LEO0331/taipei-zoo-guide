@@ -19,6 +19,7 @@
 - Navigation: the primary row has four destination groups (Explore Zoo, Nature & Wildlife, Plan Your Visit, Data & Notes). Selecting one opens a context row of two or three tabs. Through tablet widths, the context row uses equal-width buttons with centered icon-and-label groups; wide desktops use compact content-width tabs.
 - Hero title: `台北動物園導覽` is intentionally single-line. Its mobile font size scales with viewport width so the no-wrap treatment does not overflow narrow screens.
 - Map base layer: uses OpenStreetMap raster tiles with contributor attribution, avoiding the CARTO API-key-required watermark. Keep the attribution visible and review OpenStreetMap tile usage policy before scaling traffic.
+- Biodiversity chart labels: `src/utils/biodiversitySpeciesLabels.ts` maps common high-ranking source species to Traditional Chinese and English labels. If a future source species has no mapping, the chart uses a same-language "unavailable" fallback rather than mixing scripts; add verified pairs to the registry as needed.
 
 ## Verification Evidence
 
@@ -36,6 +37,7 @@
 | Responsive grouped navigation | 390px and desktop browser checks passed; Nature & Wildlife exposes biodiversity, bird, and reptile sub-tabs |
 | Latest unit tests | 4 files, 21 tests passed |
 | Latest local and Pages builds | Passed |
+| Biodiversity chart-label localization | 5 test files, 24 tests passed; local and Pages builds passed |
 
 ## Decisions
 

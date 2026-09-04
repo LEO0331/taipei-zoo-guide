@@ -119,6 +119,14 @@
       "dependencies": ["feat-001"],
       "status": "done",
       "evidence": "Map TileLayer now targets tile.openstreetmap.org and retains OpenStreetMap contributor attribution. Production build and diff checks passed."
+    },
+    {
+      "id": "feat-016",
+      "name": "Language-consistent biodiversity chart labels",
+      "description": "Show curated Chinese or English common names for the Most Recorded Species chart based on the selected interface language, without mixed-script labels.",
+      "dependencies": ["feat-011"],
+      "status": "done",
+      "evidence": "The chart uses a local bilingual species-label registry with language-safe fallbacks. 24 tests, local build, GitHub Pages build, and diff checks passed."
     }
   ]
 }

@@ -18,6 +18,7 @@
 - [x] Prevented blank post-deployment loads: service-worker navigations are network-first, while new workers skip waiting and claim clients immediately so cached HTML cannot keep referencing retired hashed bundles.
 - [x] Kept the `台北動物園導覽` hero title on one line with responsive sizing (`white-space: nowrap` plus a viewport-aware mobile font size).
 - [x] Replaced CARTO basemap tiles with OpenStreetMap tiles to remove the API-key-required watermark while retaining required attribution.
+- [x] Made the Biodiversity tab's Most Recorded Species chart language-consistent: Chinese names display in Traditional Chinese mode and English common names in English mode; source-only names use same-language fallbacks.
 
 - [x] Added `臺北市生物多樣性` as a separate citywide biodiversity survey point module.
 - [x] Fetched 2017-2024 annual CSV resources from Taipei Open Data.
@@ -48,6 +49,7 @@
 - [x] Responsive grouped-navigation QA: at 390px, four primary groups and all current sub-tabs fit without horizontal overflow; at 768px, every secondary icon-and-label group is centered in an equal-width button; desktop layout and Nature & Wildlife group switching passed.
 - [x] `npm test`: 4 files, 21 tests passed.
 - [x] `npm run build` and `GITHUB_PAGES=true npm run build`: passed.
+- [x] Language-consistent biodiversity labels: 5 test files, 24 tests passed; local and GitHub Pages builds passed.
 
 ## Remaining Risk
 

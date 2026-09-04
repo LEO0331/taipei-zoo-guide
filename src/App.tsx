@@ -37,6 +37,7 @@ import type {
 } from './models';
 import { birdSummary } from './utils/riverfrontBirdData';
 import { reptileSummary } from './utils/riverfrontReptileData';
+import { biodiversitySpeciesLabel } from './utils/biodiversitySpeciesLabels';
 import {
   buildZooAnimalSummary,
   calculateDistanceMeters,
@@ -826,7 +827,7 @@ function BiodiversityGuide({
         <BarList title={t.speciesClasses} rows={summary.bySpeciesClassGroup.map((row) => ({ label: speciesClassGroupLabel(row.speciesClassGroup, language), count: row.recordCount }))} />
         <BarList title={t.surveyMethods} rows={summary.bySurveyMethodCategory.map((row) => ({ label: surveyMethodCategoryLabel(row.surveyMethodCategory, language), count: row.recordCount }))} />
         <BarList title={t.yearlyTrends} rows={summary.bySurveyYear.map((row) => ({ label: String(row.surveyYear), count: row.recordCount }))} />
-        <BarList title={t.mostRecordedSpecies} rows={summary.topSpeciesByRecordCount.map((row) => ({ label: row.speciesName, count: row.recordCount }))} />
+        <BarList title={t.mostRecordedSpecies} rows={summary.topSpeciesByRecordCount.map((row, index) => ({ id: `${row.speciesName}-${index}`, label: biodiversitySpeciesLabel(row.speciesName, language), count: row.recordCount }))} />
       </div>
       <p className="notice subtle">{t.biodiversityChartNotice}</p>
       {hasDetails && <div className="table-wrap biodiversity-table">
@@ -1062,13 +1063,13 @@ function NearbyAnimals({ animals, language, onSelect }: { animals: ZooAnimal[]; 
   );
 }
 
-function BarList({ title, rows }: { title: string; rows: Array<{ label: string; count: number }> }) {
+function BarList({ title, rows }: { title: string; rows: Array<{ id?: string; label: string; count: number }> }) {
   const max = Math.max(...rows.map((row) => row.count), 1);
   return (
     <section className="chart-block">
       <h3>{title}</h3>
-      {rows.slice(0, 10).map((row) => (
-        <div className="bar-row" key={row.label}>
+      {rows.slice(0, 10).map((row, index) => (
+        <div className="bar-row" key={row.id ?? `${row.label}-${index}`}>
           <span>{row.label}</span><div><i style={{ width: `${(row.count / max) * 100}%` }} /></div><b>{row.count}</b>
         </div>
       ))}
