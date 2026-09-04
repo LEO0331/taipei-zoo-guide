@@ -2,8 +2,8 @@
   "datasetPage": "https://data.taipei/dataset/detail?id=320ee03a-7944-4033-9317-1373fa8615f8",
   "sourceCrs": "EPSG:3826 (TWD97 / TM2 zone 121)",
   "targetCrs": "EPSG:4326 (WGS84)",
-  "coverage": "2012-08-01 to 2015-05-31",
-  "sourceUpdatedAt": "2026-08-07",
+  "coverage": "2014-05-15 to 2015-04-28",
+  "sourceFileModifiedAt": "2026-08-13T03:20:41.561Z",
   "recordCount": 357,
   "officialFields": [
     "No",

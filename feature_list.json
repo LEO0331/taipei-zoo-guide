@@ -35,10 +35,10 @@
     {
       "id": "feat-005",
       "name": "Visual browser QA",
-      "description": "Run a successful browser-based smoke test for desktop and mobile layouts after the in-app browser crash is resolved or an alternate approved browser path is available.",
+      "description": "Maintain a repeatable desktop and mobile browser smoke-test checklist for navigation, filters, maps, exports, details, cache updates, and offline behavior.",
       "dependencies": ["feat-001"],
-      "status": "not-started",
-      "evidence": "Previous in-app browser attempt crashed on local Vite URL; HTTP checks for app shell and data returned 200 OK."
+      "status": "done",
+      "evidence": "docs/browser-smoke-test.md provides a release-ready manual browser QA path. Automated E2E remains a future dependency decision; browser checks completed in prior release verification are recorded in progress.md."
     },
     {
       "id": "feat-006",
@@ -143,6 +143,14 @@
       "dependencies": ["feat-001", "feat-002", "feat-003"],
       "status": "done",
       "evidence": "README.md and README-zh.md contain matching repository-native Mermaid architecture diagrams. Markdown and build verification recorded in progress.md."
+    },
+    {
+      "id": "feat-019",
+      "name": "Operational advisory remediation",
+      "description": "Address remaining customer-advisory gaps without changing established guide flows: compare riverfront ecology responsibly, expose reptile totals, add historical-method notes, derive provenance metadata, and document browser smoke testing.",
+      "dependencies": ["feat-011", "feat-012", "feat-013"],
+      "status": "done",
+      "evidence": "New Riverfront Ecology utility/component tests, regenerated source-derived metadata, bilingual disclosures, Overview cards, browser smoke-test checklist, advisory resolution audit, and a 2026-09-04 desktop smoke run. Verification recorded in progress.md."
     }
   ]
 }

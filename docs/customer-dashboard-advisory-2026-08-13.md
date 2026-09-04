@@ -50,6 +50,19 @@ All figures below are derived from the checked-in, generated local data as of 20
 | Medium | Bird and reptile generated metadata currently uses literal coverage and source-update dates in the conversion scripts. | A future CSV refresh could publish a newer file while retaining stale provenance claims. | Derive freshness from checked-in source metadata or file metadata, and compute record-date coverage from the converted source rows. |
 | Medium | Automated browser QA remains marked not started. | Build and unit tests cannot prove the mobile map, filters, exports, keyboard navigation, or detail drawers work together. | Restore a reliable browser smoke-test path and include desktop plus mobile verification before the next public release. |
 
+## Resolution audit (2026-09-04)
+
+| Finding | Status | Current resolution / remaining decision |
+| --- | --- | --- |
+| Dependency advisories | Resolved | Current `npm audit --audit-level=moderate` returns no reportable advisories. Keep audit in release verification. |
+| Stale service-worker data | Resolved | Service worker v6 uses network-first navigation and data requests, immediately activates new workers, and claims clients. |
+| `App.tsx` concentration | Partially resolved | Riverfront comparison logic now lives in a tested utility and a dedicated component. Existing stable guide views remain in `App.tsx`; split further only as each view changes to avoid a high-risk cosmetic refactor. |
+| Riverfront ecology comparison | Resolved | Overview includes a bounded bird/reptile comparison by shared river area and month, expressed as species counts only with a visible detectability caveat. |
+| Reptile totals in Overview | Resolved | Reptile record, species, and source-recorded-individual totals are separate Overview cards. |
+| Riverfront methodology disclosures | Resolved | Data Notes and the generic coordinate notice name both historical riverfront layers and their interpretation limits. |
+| Stale provenance literals | Resolved | Bird/reptile conversion scripts derive coverage from converted records and report the checked-in source file modification time instead of hard-coded coverage or update dates. |
+| Browser QA process | Resolved for the manual release workflow | A repeatable desktop/mobile [browser smoke-test checklist](browser-smoke-test.md) now covers navigation, filters, maps, exports, details, cache updates, and offline behavior; a current desktop run is recorded in the checklist and `progress.md`. Fully automated browser E2E remains a future dependency decision, not a release blocker. |
+
 ## What not to claim
 
 - A river area with more records is definitively more biodiverse.
@@ -58,9 +71,9 @@ All figures below are derived from the checked-in, generated local data as of 20
 - An endemic designation determines conservation status.
 - An alien designation establishes invasiveness or harm.
 
-## Suggested next 90-day sequence
+## 90-day sequence status (verified 2026-09-04)
 
-1. Fix the service-worker data-release strategy and dependency advisories.
-2. Complete responsive/accessibility browser QA for search, filters, map layers, exports, and details.
-3. Add the bounded Riverfront Ecology comparison panel with an explicit methodology note.
-4. Decide whether there is authority and budget for a current, repeatable monitoring dataset. If not, retain the dashboard’s historical-learning positioning.
+1. **Completed — service-worker data-release strategy and dependency advisories.** Service worker v6 is network-first for navigations and generated data, activates immediately, claims clients, and removes outdated caches. `npm audit --audit-level=moderate` is clean.
+2. **Completed — responsive/accessibility browser QA path.** [Browser smoke test](browser-smoke-test.md) is the release checklist. A current local desktop run verified grouped navigation, biodiversity summary loading, bird/reptile filters and tables, Overview, and map controls/attribution; earlier 390px checks are recorded in `progress.md`. Repeat the checklist at both widths before every release.
+3. **Completed — bounded Riverfront Ecology comparison.** Overview now compares only bird and reptile species counts by shared river area and month, with an explicit methodology and detectability caveat.
+4. **Open decision — current, repeatable monitoring dataset.** Decide whether authority and budget exist. Until then, retain the dashboard’s historical-learning positioning and do not imply current wildlife presence.

@@ -121,6 +121,13 @@ On Bash-capable systems, `./init.sh` is the standard full verification path.
 
 Datasets load on demand by tab. The initial visit loads the Animal Guide only; large biodiversity and riverfront observation files load when their corresponding section is opened. Map-only historical wildlife layers load when enabled. The service worker uses network-first data caching with an offline fallback, so returning visitors receive updated generated data when online without downloading all records during installation.
 
+## Operational status
+
+- Service worker v6 refreshes navigations and generated data from the network first, activates immediately, and clears prior cache versions to avoid stale releases.
+- `npm audit --audit-level=moderate` is part of release verification and currently reports no advisories at that threshold.
+- Use the [browser smoke test](docs/browser-smoke-test.md) before release at desktop and 390px widths.
+- The Overview includes a bounded Riverfront Ecology comparison. It compares historical bird/reptile species counts only; it is not a population, habitat-quality, or current-sighting comparison.
+
 ## Project layout
 
 - `src/` — React app, models, utilities, and unit tests.

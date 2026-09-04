@@ -2,8 +2,8 @@
   "datasetPage": "https://data.taipei/dataset/detail?id=8eea1e09-055b-4b3d-9472-b96744b1727e",
   "sourceCrs": "EPSG:3826 (TWD97 / TM2 zone 121)",
   "targetCrs": "EPSG:4326 (WGS84)",
-  "coverage": "2012-08-01 to 2015-05-31",
-  "sourceUpdatedAt": "2023-07-05",
+  "coverage": "2014-05 to 2015-04-28",
+  "sourceFileModifiedAt": "2026-07-28T03:00:28.993Z",
   "recordCount": 11789,
   "officialFields": [
     "Family",

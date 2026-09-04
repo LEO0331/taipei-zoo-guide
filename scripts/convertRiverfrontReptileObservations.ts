@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises';
+import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import type { RiverfrontReptileObservation } from '../src/models';
 import { decodeCsvBuffer, parseCsv, twd97ToWgs84 } from '../src/utils/zooGuideData';
@@ -8,6 +8,11 @@ const input = path.resolve('data/raw/riverfront-reptile-observations.csv');
 const output = path.resolve('public/data/riverfront-reptile-observations');
 const asNumber = (value: string | undefined) => value?.trim() && Number.isFinite(Number(value)) ? Number(value) : null;
 const validTime = (value: string) => /^([01]\d|2[0-3])([0-5]\d)$/.test(value) ? `${value.slice(0, 2)}:${value.slice(2)}` : null;
+
+function coverage(records: RiverfrontReptileObservation[]) {
+  const periods = records.map((record) => record.observationPeriod).filter((period): period is string => Boolean(period)).sort();
+  return periods.length ? `${periods[0]} to ${periods.at(-1)}` : undefined;
+}
 
 function observation(row: Record<string, string>, index: number): RiverfrontReptileObservation {
   const xTwd97 = asNumber(row.X坐標); const yTwd97 = asNumber(row.Y坐標);
@@ -22,12 +27,13 @@ function observation(row: Record<string, string>, index: number): RiverfrontRept
 }
 
 async function main() {
-  const rows = parseCsv(decodeCsvBuffer(await readFile(input)).text);
+  const [bytes, sourceFile] = await Promise.all([readFile(input), stat(input)]);
+  const rows = parseCsv(decodeCsvBuffer(bytes).text);
   const seen = new Set<string>();
   const records = rows.map(observation).filter((record) => !seen.has(JSON.stringify(record.sourceRow)) && !!seen.add(JSON.stringify(record.sourceRow)));
   await writeJson(path.join(output, 'observations.json'), records);
   await writeJson(path.join(output, 'observations.geojson'), { type: 'FeatureCollection', features: records.filter((record) => record.hasValidCoordinates).map((record) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [record.longitude, record.latitude] }, properties: { ...record, sourceRow: undefined } })) });
-  await writeJson(path.join(output, 'metadata.json'), { datasetPage: 'https://data.taipei/dataset/detail?id=320ee03a-7944-4033-9317-1373fa8615f8', sourceCrs: 'EPSG:3826 (TWD97 / TM2 zone 121)', targetCrs: 'EPSG:4326 (WGS84)', coverage: '2012-08-01 to 2015-05-31', sourceUpdatedAt: '2026-08-07', recordCount: records.length, officialFields: Object.keys(rows[0] ?? {}) });
+  await writeJson(path.join(output, 'metadata.json'), { datasetPage: 'https://data.taipei/dataset/detail?id=320ee03a-7944-4033-9317-1373fa8615f8', sourceCrs: 'EPSG:3826 (TWD97 / TM2 zone 121)', targetCrs: 'EPSG:4326 (WGS84)', coverage: coverage(records), sourceFileModifiedAt: sourceFile.mtime.toISOString(), recordCount: records.length, officialFields: Object.keys(rows[0] ?? {}) });
   await mergeConversionReport(path.resolve('public/data'), 'riverfrontReptileObservations', { records: records.length, validCoordinates: records.filter((record) => record.hasValidCoordinates).length });
   console.log(`Converted ${records.length} riverfront reptile observations`);
 }

@@ -22,6 +22,8 @@
 - [x] Made Riverfront Bird and Reptile observation tables responsive: headers stay on one line, use 經度／緯度 in Traditional Chinese, and scroll horizontally on narrow screens instead of compressing columns.
 - [x] Formatted Riverfront Bird and Reptile table longitude/latitude values to four decimal places; full-precision values remain in map calculations and CSV exports.
 - [x] Added matching English and Traditional Chinese Mermaid architecture diagrams to the READMEs, showing official sources, the static data pipeline, React/Leaflet runtime, service-worker cache behavior, and GitHub Pages delivery.
+- [x] Completed the operational-advisory remediation: added a bounded Riverfront Ecology comparison, reptile Overview totals, historical-method Data Notes, source-derived bird/reptile metadata, a browser smoke-test checklist, and a resolution audit.
+- [x] Verified 90-day sequence steps 1–3: clean moderate-severity audit and service-worker freshness, current desktop browser smoke coverage, and the bounded Riverfront Ecology comparison. The current-monitoring authority/budget decision remains open.
 
 - [x] Added `臺北市生物多樣性` as a separate citywide biodiversity survey point module.
 - [x] Fetched 2017-2024 annual CSV resources from Taipei Open Data.
@@ -53,6 +55,8 @@
 - [x] `npm test`: 4 files, 21 tests passed.
 - [x] `npm run build` and `GITHUB_PAGES=true npm run build`: passed.
 - [x] Language-consistent biodiversity labels: 5 test files, 24 tests passed; local and GitHub Pages builds passed.
+- [x] Operational-advisory remediation: `npm audit --audit-level=moderate` passed with no reportable advisories; 6 test files, 25 tests passed; bird/reptile metadata conversion, local build, GitHub Pages build, and diff checks passed.
+- [x] 2026-09-04 local desktop browser smoke test: grouped navigation, biodiversity summary, bird/reptile filters and localized tables, Overview comparison/totals, map controls, and OpenStreetMap attribution passed.
 
 ## Remaining Risk
 

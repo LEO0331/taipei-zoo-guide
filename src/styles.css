@@ -704,6 +704,28 @@ table {
   min-width: 720px;
 }
 
+.riverfront-ecology {
+  margin-top: 1.25rem;
+}
+
+.ecology-summary {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ecology-comparison-grid {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 0.8rem;
+}
+
+.ecology-comparison-table h3 {
+  margin: 0.5rem 0;
+}
+
+.ecology-comparison-table table {
+  min-width: 0;
+}
+
 .observation-table {
   min-width: 1080px;
 }
@@ -888,6 +910,10 @@ footer {
 
   .overview-facts {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ecology-comparison-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

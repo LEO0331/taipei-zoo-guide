@@ -38,6 +38,7 @@ import type {
 import { birdSummary } from './utils/riverfrontBirdData';
 import { reptileSummary } from './utils/riverfrontReptileData';
 import { biodiversitySpeciesLabel } from './utils/biodiversitySpeciesLabels';
+import { RiverfrontEcologyComparison } from './components/RiverfrontEcologyComparison';
 import {
   buildZooAnimalSummary,
   calculateDistanceMeters,
@@ -1084,6 +1085,7 @@ function Overview({
   plants,
   biodiversitySummary,
   birds,
+  reptiles,
   areas,
   events,
   summary,
@@ -1093,6 +1095,7 @@ function Overview({
   plants: ZooPlantRecord[];
   biodiversitySummary: TaipeiBiodiversitySpeciesSurveyPointSummary | null;
   birds: RiverfrontBirdObservation[];
+  reptiles: RiverfrontReptileObservation[];
   areas: ZooExhibitArea[];
   events: ZooEvent[];
   summary: ZooGuideSummary;
@@ -1111,6 +1114,9 @@ function Overview({
     [t.latestSurveyYear, biodiversityData.latestSurveyYear ?? t.unknown],
     [language === 'zh' ? '河濱鳥類紀錄' : 'Riverfront bird records', summary.riverfrontBirdObservationCount ?? 0],
     [language === 'zh' ? '河濱鳥種' : 'Riverfront bird species', summary.riverfrontBirdSpeciesCount ?? 0],
+    [language === 'zh' ? '河濱爬蟲紀錄' : 'Riverfront reptile records', summary.riverfrontReptileObservationCount ?? 0],
+    [language === 'zh' ? '河濱爬蟲物種' : 'Riverfront reptile species', summary.riverfrontReptileSpeciesCount ?? 0],
+    [language === 'zh' ? '河濱爬蟲記錄個體總數' : 'Riverfront reptile recorded individuals', summary.riverfrontReptileIndividualCount ?? 0],
     [t.plantFamilyCount, summary.plantFamilyCount ?? 0],
     [t.exhibitAreaCount, areas.length],
     [t.exhibitAreasWithCoordinates, areas.filter((area) => area.coordinateStatus === 'valid').length],
@@ -1127,6 +1133,7 @@ function Overview({
         <p><strong>{t.eventDateRange}</strong><span>{summary.eventDateMin} – {summary.eventDateMax}</span></p>
         <p><strong>{t.mostCommonEventLocation}</strong><span>{summary.byEventLocation[0]?.locationName ?? t.unknown}</span></p>
       </div>
+      <RiverfrontEcologyComparison birds={birds} reptiles={reptiles} language={language} />
       <div className="chart-grid">
         <BarList title={t.exhibitAreasByCategory} rows={summary.byExhibitAreaCategory.map((row) => ({ label: areaCategoryLabel(row.areaCategory, language), count: row.count }))} />
         <BarList title={t.animalsByExhibitArea} rows={animalSummary.byExhibitArea.map((row) => ({ label: row.exhibitArea, count: row.count }))} />
@@ -1154,6 +1161,8 @@ function DataNotes({ language }: { language: Language }) {
       <p>{t.biodiversityDataNote}</p>
       <p>{t.biodiversityInterpretationNote}</p>
       <p>{t.biodiversityZooExhibitDistinctionNote}</p>
+      <p>{t.riverfrontBirdDataNote}</p>
+      <p>{t.riverfrontReptileDataNote}</p>
       <p>{t.coordinateNotice}</p>
       <p className="notice">{t.zooMediaLicenseNotice}</p>
       <p className="notice">{t.zooGuideDisclaimer}</p>
@@ -1345,7 +1354,7 @@ export default function App() {
           {activeTab === 'exhibits' && <ExhibitGuide areas={exhibitAreas} animals={animals} search={search} language={language} onSelect={setSelected} />}
           {activeTab === 'events' && <EventGuide events={events} search={search} language={language} onSelect={setSelected} />}
           {activeTab === 'map' && <GuideMap animals={filterAnimals(animals, filters)} plants={plants} biodiversity={biodiversity} reptiles={reptiles} areas={exhibitAreas} events={events} language={language} onLoadDataset={loadDataset} onSelect={setSelected} />}
-          {activeTab === 'overview' && <Overview animals={animals} plants={plants} biodiversitySummary={biodiversitySummary} birds={birds} areas={exhibitAreas} events={events} summary={summary} language={language} />}
+          {activeTab === 'overview' && <Overview animals={animals} plants={plants} biodiversitySummary={biodiversitySummary} birds={birds} reptiles={reptiles} areas={exhibitAreas} events={events} summary={summary} language={language} />}
           {activeTab === 'notes' && <DataNotes language={language} />}
         </>}
       </main>
