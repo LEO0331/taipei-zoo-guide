@@ -20,6 +20,7 @@
 - [x] Replaced CARTO basemap tiles with OpenStreetMap tiles to remove the API-key-required watermark while retaining required attribution.
 - [x] Made the Biodiversity tab's Most Recorded Species chart language-consistent: Chinese names display in Traditional Chinese mode and English common names in English mode; source-only names use same-language fallbacks.
 - [x] Made Riverfront Bird and Reptile observation tables responsive: headers stay on one line, use 經度／緯度 in Traditional Chinese, and scroll horizontally on narrow screens instead of compressing columns.
+- [x] Formatted Riverfront Bird and Reptile table longitude/latitude values to four decimal places; full-precision values remain in map calculations and CSV exports.
 
 - [x] Added `臺北市生物多樣性` as a separate citywide biodiversity survey point module.
 - [x] Fetched 2017-2024 annual CSV resources from Taipei Open Data.
