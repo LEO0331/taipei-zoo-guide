@@ -704,6 +704,14 @@ table {
   min-width: 720px;
 }
 
+.observation-table {
+  min-width: 1080px;
+}
+
+.observation-table th {
+  white-space: nowrap;
+}
+
 th,
 td {
   padding: 0.8rem;

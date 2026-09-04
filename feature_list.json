@@ -127,6 +127,14 @@
       "dependencies": ["feat-011"],
       "status": "done",
       "evidence": "The chart uses a local bilingual species-label registry with language-safe fallbacks. 24 tests, local build, GitHub Pages build, and diff checks passed."
+    },
+    {
+      "id": "feat-017",
+      "name": "Responsive localized observation tables",
+      "description": "Keep Riverfront Bird and Reptile observation-table headers on one line, localize longitude and latitude, and use horizontal overflow rather than compressed columns on narrow screens.",
+      "dependencies": ["feat-012", "feat-013"],
+      "status": "done",
+      "evidence": "Bird and reptile tables share the observation-table style and localized 經度／緯度 headers. 24 tests, local build, GitHub Pages build, and diff checks passed."
     }
   ]
 }
