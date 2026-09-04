@@ -21,6 +21,7 @@
 - Map base layer: uses OpenStreetMap raster tiles with contributor attribution, avoiding the CARTO API-key-required watermark. Keep the attribution visible and review OpenStreetMap tile usage policy before scaling traffic.
 - Biodiversity chart labels: `src/utils/biodiversitySpeciesLabels.ts` maps common high-ranking source species to Traditional Chinese and English labels. If a future source species has no mapping, the chart uses a same-language "unavailable" fallback rather than mixing scripts; add verified pairs to the registry as needed.
 - Riverfront observation tables: Bird and reptile tables use the shared `observation-table` class. Keep its wide minimum width and single-line headers so the existing `table-wrap` horizontal scroll remains the narrow-screen behavior; localize longitude and latitude as 經度／緯度 in Traditional Chinese. Table values display four decimal places, but map calculations and CSV exports intentionally retain source precision.
+- Architecture documentation: `README.md` and `README-zh.md` contain matching Mermaid diagrams. When changing the data pipeline, runtime loading, service-worker policy, or deployment, update both diagrams so the documented boundaries remain accurate.
 
 ## Verification Evidence
 

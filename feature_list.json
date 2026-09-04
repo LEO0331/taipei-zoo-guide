@@ -135,6 +135,14 @@
       "dependencies": ["feat-012", "feat-013"],
       "status": "done",
       "evidence": "Bird and reptile tables share the observation-table style, localized 經度／緯度 headers, and four-decimal coordinate display while retaining full-precision map and CSV values. 24 tests, local build, GitHub Pages build, and diff checks passed."
+    },
+    {
+      "id": "feat-018",
+      "name": "Documented system architecture",
+      "description": "Add bilingual Mermaid architecture diagrams that explain data sources, build-time conversion, static runtime data, the React/Leaflet app, service-worker caching, and GitHub Pages delivery.",
+      "dependencies": ["feat-001", "feat-002", "feat-003"],
+      "status": "done",
+      "evidence": "README.md and README-zh.md contain matching repository-native Mermaid architecture diagrams. Markdown and build verification recorded in progress.md."
     }
   ]
 }

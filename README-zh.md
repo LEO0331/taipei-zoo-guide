@@ -12,6 +12,44 @@
 - 搜尋、篩選、詳細資料抽屜、地圖圖層、資料摘要與本機資料匯出。
 - 介面預設為繁體中文，並可切換且記住英文偏好。
 
+## 系統架構
+
+```mermaid
+flowchart LR
+  subgraph Sources[官方資料來源]
+    Z["臺北市立動物園開放資料"]
+    B["臺北市生物多樣性與河濱調查"]
+  end
+
+  subgraph Build[建置階段資料流程]
+    F["抓取腳本\n原始 CSV / JSON 快照"]
+    C["轉換器與摘要產生器\n正規化、驗證、TWD97 → WGS84"]
+    R["data/raw/\n版本控制的來源快照"]
+    D["public/data/\n靜態 JSON、GeoJSON 與摘要"]
+    Z --> F
+    B --> F
+    F --> R --> C --> D
+  end
+
+  subgraph App[靜態 Vite + React 應用程式]
+    UI["雙語 React 介面\nApp、篩選器、資料表、詳細抽屜"]
+    MAP["Leaflet 地圖\nOpenStreetMap 底圖"]
+    DATA["按需本機資料載入器\n依目前分頁與使用者啟用的地圖圖層"]
+    UI <--> DATA
+    UI <--> MAP
+  end
+
+  D --> DATA
+
+  subgraph Delivery[瀏覽器與部署]
+    SW["Service Worker\n網路優先的導覽與資料\n離線快取備援"]
+    P["GitHub Pages\n靜態 dist/ 部署"]
+    P --> SW --> UI
+  end
+
+  C --> P
+```
+
 ## 解讀資料前請注意
 
 本專案是公開資料教育與探索工具，**不是即時野生動物服務**。

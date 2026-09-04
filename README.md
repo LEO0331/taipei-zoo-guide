@@ -12,6 +12,44 @@ A mobile-first, bilingual guide for Taipei Zoo and Taipei nature public data. Bu
 - Search, filters, detail drawers, map layers, data summaries, and local-data exports.
 - Traditional Chinese by default, with a persisted English toggle.
 
+## Architecture
+
+```mermaid
+flowchart LR
+  subgraph Sources[Official data sources]
+    Z["Taipei Zoo open data"]
+    B["Taipei biodiversity and riverfront surveys"]
+  end
+
+  subgraph Build[Build-time data pipeline]
+    F["Fetch scripts\nraw CSV / JSON snapshots"]
+    C["Converters and summary builders\nnormalise, validate, convert TWD97 → WGS84"]
+    R["data/raw/\nversioned source snapshots"]
+    D["public/data/\nstatic JSON, GeoJSON, summaries"]
+    Z --> F
+    B --> F
+    F --> R --> C --> D
+  end
+
+  subgraph App[Static Vite + React application]
+    UI["Bilingual React UI\nApp, filters, tables, detail panels"]
+    MAP["Leaflet map\nOpenStreetMap base layer"]
+    DATA["On-demand local-data loader\nactive tab and opt-in map layers"]
+    UI <--> DATA
+    UI <--> MAP
+  end
+
+  D --> DATA
+
+  subgraph Delivery[Browser and delivery]
+    SW["Service worker\nnetwork-first navigation and data\noffline cache fallback"]
+    P["GitHub Pages\nstatic dist/ deployment"]
+    P --> SW --> UI
+  end
+
+  C --> P
+```
+
 ## Important interpretation limits
 
 This is an educational public-data explorer, not a real-time wildlife service.
