@@ -1,6 +1,7 @@
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { buildZooAnimalSummary, normalizeAnimalRow } from '../src/utils/zooData';
+import { mergeAnimalEnglishSupplement } from '../src/utils/zooSourceSupplement';
 import type { ZooAnimal } from '../src/models';
 
 const INPUT_DIR = path.resolve('data/raw/zoo-animals');
@@ -38,15 +39,16 @@ function parseCsv(text: string): Record<string, unknown>[] {
   return body.map((values) => Object.fromEntries(headers.map((header, index) => [header, values[index] ?? ''])));
 }
 
-async function readRows(): Promise<Record<string, unknown>[]> {
-  const files = await readdir(INPUT_DIR).catch(() => []);
+async function readRows(): Promise<{ rows: Record<string, unknown>[]; supplementRows: Record<string, unknown>[] }> {
+  const files: string[] = await readdir(INPUT_DIR).catch(() => [] as string[]);
   const indexText = await readFile(path.join(INPUT_DIR, 'resource-index.json'), 'utf8').catch(() => undefined);
   const indexedJsonFiles = indexText
     ? ((JSON.parse(indexText) as { pages?: Array<{ file: string }> }).pages ?? []).map((page) => page.file)
     : [];
-  const selectedFiles = indexedJsonFiles.length
+  const supplementFile = 'english-supplement.csv';
+  const selectedFiles = (indexedJsonFiles.length
     ? [...new Set([...indexedJsonFiles, ...files.filter((file) => file.endsWith('.csv'))])]
-    : files;
+    : files).filter((file) => file !== supplementFile);
   const rows: Record<string, unknown>[] = [];
   for (const file of selectedFiles) {
     if (file === 'resource-index.json') continue;
@@ -64,18 +66,23 @@ async function readRows(): Promise<Record<string, unknown>[]> {
       rows.push(...(payload.result?.results ?? []));
     }
   }
-  return rows;
+  const supplementRows = files.includes(supplementFile)
+    ? parseCsv(await readFile(path.join(INPUT_DIR, supplementFile), 'utf8'))
+    : [];
+  return { rows, supplementRows };
 }
 
 async function main() {
   await mkdir(OUTPUT_DIR, { recursive: true });
-  const rows = await readRows();
-  const animals: ZooAnimal[] = rows.map((row, index) => normalizeAnimalRow(row, index));
+  const { rows, supplementRows } = await readRows();
+  const supplemented = mergeAnimalEnglishSupplement(rows, supplementRows);
+  const animals: ZooAnimal[] = supplemented.rows.map((row, index) => normalizeAnimalRow(row, index));
   const summary = buildZooAnimalSummary(animals);
   const report = {
     generatedAt: new Date().toISOString(),
     sourceRows: rows.length,
     generatedAnimals: animals.length,
+    englishSupplement: supplemented.report,
     coordinateStatus: {
       valid: animals.filter((animal) => animal.coordinateStatus === 'valid').length,
       missing: animals.filter((animal) => animal.coordinateStatus === 'missing').length,

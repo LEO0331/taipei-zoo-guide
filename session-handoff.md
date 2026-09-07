@@ -25,6 +25,7 @@
 - Operational advisory remediation: `RiverfrontEcologyComparison` uses `buildRiverfrontEcologyComparison` to compare only bird/reptile species counts by shared region and month, with a visible detectability caveat. Overview now has separate reptile totals. Data Notes name riverfront historical-data limits. `docs/browser-smoke-test.md` provides the manual release checklist. The source conversion scripts derive coverage and `sourceFileModifiedAt` from their checked-in input; do not reintroduce literal freshness claims.
 - 90-day sequence: all four items are complete and documented in the customer advisory. The current decision is that no budget exists for a repeatable monitoring dataset; retain historical-learning language and revisit only if funding and data-governance authority change.
 - E2E: `npm run test:e2e` first builds the standard production bundle, then runs Playwright through `vite preview`. CI installs Chromium, validates both build variants before E2E, uploads screenshots/traces on failure, then rebuilds the Pages artifact for deployment. Keep `docs/browser-smoke-test.md` for manual map/offline release checks.
+- English supplements: `npm run data:fetch:english-supplements` downloads the current English-only animal and display-area CSVs. `convert:data` merges only verified matches into the Chinese canonical source, preserves all current records/rich fields, and rejects coordinate movements over 100 m into `conversion-report.json` for review. Do not promote unmatched supplement rows without verified Chinese canonical records.
 
 ## Verification Evidence
 
@@ -46,6 +47,7 @@
 | Operational-advisory remediation | `npm audit --audit-level=moderate` clean; 6 test files, 25 tests passed; local and Pages builds passed |
 | 90-day sequence validation | Current local desktop browser smoke run passed; repeat the documented 390px check before each release |
 | Automated browser E2E | 14 Playwright production-preview checks passed across desktop and 390px mobile; CI uploads screenshots/traces on failure |
+| English source supplements | 313 animals and 17 areas retained; 254 animal and 15 exhibit matches enriched; exceptions remain in conversion report |
 
 ## Decisions
 

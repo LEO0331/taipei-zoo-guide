@@ -97,6 +97,17 @@ npm run data:convert:riverfront-reptiles
 npm run data:convert:biodiversity
 ```
 
+### English animal and exhibit supplements
+
+The newer `Taipeizoo_animal` and `Taipeizoo_DisplayAreas` files are English-only, reduced-schema feeds. They are fetched as supplements, not replacements for the canonical Chinese records:
+
+```bash
+npm run data:fetch:english-supplements
+npm run convert:data
+```
+
+The adapter preserves all existing records and Chinese content, enriches verified matches with English names and refined coordinates, and records unmatched entries or coordinate moves over 100 m in `public/data/conversion-report.json` for review. It does not publish those exceptions automatically.
+
 ## Local development
 
 Requirements: Node.js 22 or later and npm.

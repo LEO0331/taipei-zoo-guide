@@ -339,6 +339,7 @@ export function normalizeExhibitAreaRow(row: Record<string, unknown>, index: num
     ...(areaCategoryRaw ? { areaCategoryRaw } : {}),
     areaCategory: classifyExhibitAreaCategory(areaCategoryRaw),
     areaName,
+    ...(cleanValue(row.E_Name_En) ? { englishName: cleanValue(row.E_Name_En) } : {}),
     ...(cleanValue(row.E_Info) ? { description: cleanValue(row.E_Info) } : {}),
     ...(cleanValue(row.E_Memo) ? { memo: cleanValue(row.E_Memo) } : {}),
     ...(longitude !== undefined ? { longitude } : {}),

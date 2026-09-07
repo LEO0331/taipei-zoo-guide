@@ -97,6 +97,17 @@ npm run data:convert:riverfront-reptiles
 npm run data:convert:biodiversity
 ```
 
+### 動物與館區英文補充資料
+
+較新的 `Taipeizoo_animal` 與 `Taipeizoo_DisplayAreas` 是英文且欄位較少的資料來源，因此只作為補充資料，不會取代既有的中文主資料：
+
+```bash
+npm run data:fetch:english-supplements
+npm run convert:data
+```
+
+轉接器會保留全部既有紀錄與中文內容，僅為已驗證的對應資料補上英文名稱與較精細座標。找不到對應項目或座標位移超過 100 公尺時，會寫入 `public/data/conversion-report.json` 供人工檢查，不會自動發布例外資料。
+
 ## 本機開發
 
 需求：Node.js 22 或更新版本，以及 npm。

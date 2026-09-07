@@ -9,11 +9,12 @@ export type CsvSource = {
   rows: number;
 };
 
-export async function readCsvDirectory(inputDir: string): Promise<{
+export async function readCsvDirectory(inputDir: string, options: { excludeFiles?: string[] } = {}): Promise<{
   rows: Record<string, string>[];
   sources: CsvSource[];
 }> {
-  const files = (await readdir(inputDir).catch(() => [])).filter((file) => file.toLocaleLowerCase().endsWith('.csv')).sort();
+  const excluded = new Set(options.excludeFiles ?? []);
+  const files = (await readdir(inputDir).catch(() => [])).filter((file) => file.toLocaleLowerCase().endsWith('.csv') && !excluded.has(file)).sort();
   const rows: Record<string, string>[] = [];
   const sources: CsvSource[] = [];
   for (const file of files) {

@@ -151,6 +151,14 @@
       "dependencies": ["feat-011", "feat-012", "feat-013"],
       "status": "done",
       "evidence": "New Riverfront Ecology utility/component tests, regenerated source-derived metadata, bilingual disclosures, Overview cards, browser smoke-test checklist, advisory resolution audit, a 2026-09-04 desktop smoke run, and the documented decision to retain historical-learning positioning because no current-monitoring budget exists. Verification recorded in progress.md."
+    },
+    {
+      "id": "feat-020",
+      "name": "Safe English source supplements",
+      "description": "Fetch newer English Taipeizoo animal and display-area sources as supplements, preserve the canonical Chinese records, enrich verified matches, and retain unmatched records or material coordinate moves for review.",
+      "dependencies": ["feat-001", "feat-009"],
+      "status": "done",
+      "evidence": "Fetched official English supplements, safely retained 313 animal and 17 exhibit records, enriched 254 animal and 15 exhibit matches, and recorded 22 coordinate-review exceptions plus 2 unmatched animal rows. 27 unit tests, 14 E2E checks, both builds, and audit passed."
     }
   ]
 }

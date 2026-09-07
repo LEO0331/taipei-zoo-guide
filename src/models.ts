@@ -140,6 +140,7 @@ export type ZooExhibitArea = {
   areaCategoryRaw?: string;
   areaCategory: ExhibitAreaCategory;
   areaName: string;
+  englishName?: string;
   description?: string;
   memo?: string;
   longitude?: number;
